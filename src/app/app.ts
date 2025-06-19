@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { SharedService } from './core/shared.service';
 
 @Component({
@@ -12,14 +12,13 @@ export class App implements OnInit {
 
   protected title = 'Slider';
   private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
 
   ngOnInit(): void {
 
     const project = this.sharedService.get('projectPath');
     if (project) {
-      console.log('Project path:', project);
-    } else {
-      console.log('No project path found');
+      this.router.navigate(['/project']);
     }
   }
 
@@ -37,5 +36,8 @@ export class App implements OnInit {
     // add your logic here
   }
 
+  closeProject() {
+    this.sharedService.set('projectPath', null);
+  }
 }
 
