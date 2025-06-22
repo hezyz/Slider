@@ -1,34 +1,48 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, globalShortcut } = require('electron');
 const path = require('path');
-const { globalShortcut } = require('electron');
 
-app.whenReady().then(() => {
-  const win = createWindow();
-
-  globalShortcut.register('CommandOrControl+R', () => {
-    win.webContents.reload(); // manually refresh Electron window
-  });
-});
+let mainWindow;
 
 function createWindow() {
-  const win = new BrowserWindow({
-  width: 1200,
-  height: 800,
-  webPreferences: {
-    preload: path.join(__dirname, 'preload.js'),
-    contextIsolation: true,
-    webSecurity: false  // ✅ this allows loading local file:// URLs
-  }
-});
+  mainWindow = new BrowserWindow({
+    width: 1500,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      webSecurity: false
+    }
+  });
 
-  win.loadURL('http://localhost:4200'); // dev mode
-  // win.loadFile(path.join(__dirname, '../dist/index.html')); // prod mode
+  mainWindow.loadURL('http://localhost:4200');
+  mainWindow.webContents.openDevTools();
 }
 
-app.whenReady().then(() => {
-  createWindow();
-});
+const gotTheLock = app.requestSingleInstanceLock();
 
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.whenReady().then(() => {
+    createWindow();
 
-// Register all IPC handlers
-require('./electron-events');
+    globalShortcut.register('CommandOrControl+R', () => {
+      if (mainWindow) mainWindow.webContents.reload();
+    });
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+
+  // Handle second instance (optional: bring to front)
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  // IPC handlers
+  require('./electron-events');
+}

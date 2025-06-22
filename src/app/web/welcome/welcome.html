@@ -3,4 +3,7 @@
     <input [(ngModel)]="projectName" type="text" class="form-control" placeholder="Enter project name" />
     <button class="btn btn-success" (click)="createProject()">Create Project</button>
   </div>
+  @if (errorMessage()) {
+  <div class="alert alert-danger">{{ errorMessage() }}</div>
+  }
 </div>

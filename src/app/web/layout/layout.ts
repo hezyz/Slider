@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject, input, OnInit } from '@angular/core';
+import { SharedService } from '../../core/shared.service';
 
 @Component({
   selector: 'app-layout',
@@ -6,6 +7,10 @@ import { Component } from '@angular/core';
   templateUrl: './layout.html',
   styleUrl: './layout.css'
 })
-export class Layout {
+export class Layout implements OnInit {
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
+  }
 
+  public readonly sharedService = inject(SharedService);
 }

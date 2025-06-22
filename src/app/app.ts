@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { SharedService } from './core/shared.service';
 
@@ -11,20 +11,46 @@ import { SharedService } from './core/shared.service';
 export class App implements OnInit {
 
   protected title = 'Slider';
-  private readonly sharedService = inject(SharedService);
+  public readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
+
+  projectName = signal('');
 
   ngOnInit(): void {
 
-    const project = this.sharedService.get('projectPath');
+    const project: string | null = this.sharedService.get('projectName');
+    console.log('Project name on init:', project);
     if (project) {
+      this.sharedService.setProjectName(project);
+      this.projectName.set(project);
       this.router.navigate(['/project']);
+    } else {
+      this.router.navigate(['/']);
     }
   }
 
-  openProject() {
-    console.log('Open Project clicked');
-    // add your logic here
+  async openProject() {
+
+    const result = await window.electron.selectJsonFile();
+
+    if (result.canceled) {
+      console.log('User cancelled file selection.');
+      return;
+    }
+
+    const filePath = result.filePath!;
+    const json = await window.electron.readJsonFile(filePath);
+
+    if (json.success) {
+      console.log('Project loaded:', json.data.name);
+      this.sharedService.remove('projectName');
+      this.sharedService.set('projectName', json.data.name);
+      this.sharedService.setProjectName(json.data.name);
+      this.projectName.set(json.data.name);
+      this.router.navigate(['/project']);
+    } else {
+      console.error('Error loading JSON:', json.error);
+    }
   }
 
   async saveProject() {
@@ -37,7 +63,7 @@ export class App implements OnInit {
   }
 
   closeProject() {
-    this.sharedService.set('projectPath', null);
+    this.sharedService.set('projectName', null);
   }
 }
 

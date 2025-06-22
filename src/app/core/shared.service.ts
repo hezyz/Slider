@@ -2,6 +2,15 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
+
+  //shared
+  projectName = signal<string | null>(null);
+
+  setProjectName(path: string) {
+    this.projectName.set(path);
+  }
+
+  //Loacal storeage
   private signals = new Map<string, WritableSignal<unknown>>();
 
   // Get raw value
