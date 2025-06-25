@@ -5,9 +5,22 @@ export class SharedService {
 
   //shared
   projectName = signal<string | null>(null);
+  imagePaths = signal<string[]>([]);
+  selectedImage = signal<string | null>(null);
 
   setProjectName(path: string) {
     this.projectName.set(path);
+  }
+
+  setImages(images: string[]) {
+    this.imagePaths.set(images);
+    if (images.length > 0) {
+      this.selectedImage.set(images[0]);
+    }
+  }
+
+  selectImage(image: string) {
+    this.selectedImage.set(image);
   }
 
   //Loacal storeage
