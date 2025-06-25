@@ -1,4 +1,5 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
+import { SegmentModel } from './segment.model';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
@@ -7,6 +8,8 @@ export class SharedService {
   projectName = signal<string | null>(null);
   imagePaths = signal<string[]>([]);
   selectedImage = signal<string | null>(null);
+
+  segments = signal<SegmentModel[]>([])
 
   setProjectName(path: string) {
     this.projectName.set(path);
@@ -23,6 +26,10 @@ export class SharedService {
     this.selectedImage.set(image);
   }
 
+  setSegmnents(segments: SegmentModel[]) {
+    this.segments.set(segments);
+  }
+  
   //Loacal storeage
   private signals = new Map<string, WritableSignal<unknown>>();
 
