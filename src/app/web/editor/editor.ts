@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { SharedService } from '../../core/shared.service';
 
 @Component({
   selector: 'app-editor',
@@ -8,4 +9,7 @@ import { Component } from '@angular/core';
 })
 export class Editor {
 
+    private readonly sharedService = inject(SharedService);
+  
+  selectedImage = this.sharedService.selectedImage;
 }

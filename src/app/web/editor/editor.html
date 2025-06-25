@@ -1,1 +1,3 @@
-<p>editor works!</p>
+@if(selectedImage()){
+  <img [src]="'file://' + selectedImage()" class="img-fluid border" />
+}

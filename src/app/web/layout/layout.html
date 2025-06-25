@@ -1,5 +1,82 @@
-<p>layout works!</p>
-<div>{{sharedService.projectName()}}</div>
-<div>
-    <button class="btn btn-primary" (click)="importImages()">Select Image Folder</button>
+<nav class="navbar bg-light border-bottom sticky-top" style="top: 56px; z-index: 1020;">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    
+    <!-- Left: Project Name -->
+    <span class="navbar-text">
+      Editing: {{ sharedService.projectName() }}
+    </span>
+
+    <!-- Center: Prev / Current / Next -->
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary" (click)="goToPrevious()" [disabled]="!hasPrevious()">Previous</button>
+      <span>{{ currentIndex() + 1 }} / {{ sharedService.imagePaths().length }}</span>
+      <button class="btn btn-outline-secondary" (click)="goToNext()" [disabled]="!hasNext()">Next</button>
+    </div>
+
+    <!-- Right: Add Slide -->
+    <button class="btn btn-sm btn-primary" (click)="importImages()">Add Slide</button>
+
+  </div>
+</nav>
+
+
+<div class="container-fluid">
+    <!-- First Row: 2 columns -->
+    <div class="row" style="height: 75vh;">
+        <!-- Left Column (Y Scroll) -->
+        <div class="col-md-4 overflow-auto border-end" style="max-height: 100%;">
+            <div class="p-3">
+                <p>Slide Menu 1</p>
+                <p>Slide Menu 2</p>
+                <p>Slide Menu 3</p>
+                <p>Slide Menu 4</p>
+                <p>Slide Menu 5</p>
+                <p>Slide Menu 1</p>
+                <p>Slide Menu 2</p>
+                <p>Slide Menu 3</p>
+                <p>Slide Menu 4</p>
+                <p>Slide Menu 5</p>
+                <p>Slide Menu 1</p>
+                <p>Slide Menu 2</p>
+                <p>Slide Menu 3</p>
+                <p>Slide Menu 4</p>
+                <p>Slide Menu 5</p>
+                <p>Slide Menu 1</p>
+                <p>Slide Menu 2</p>
+                <p>Slide Menu 3</p>
+                <p>Slide Menu 4</p>
+                <p>Slide Menu 5</p>
+                <p>Slide Menu 1</p>
+                <p>Slide Menu 2</p>
+                <p>Slide Menu 3</p>
+                <p>Slide Menu 4</p>
+                <p>Slide Menu 5</p>
+                <!-- Add more to enable scrolling -->
+            </div>
+        </div>
+
+        <!-- Right Column (Main Slide Display) -->
+        <div class="col-md-8 p-3">
+            <div class="bg-light p-5 text-center h-100">
+                <router-outlet></router-outlet>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row: X Scroll of All Slides -->
+    <!-- Second Row: X Scroll of All Slides -->
+    <div class="row border-top" style="height: 25vh;">
+        <div class="col-12">
+            <div class="d-flex overflow-auto px-3" style="gap: 1rem;">
+                <!-- Horizontal scroll items -->
+                <div class="flex-shrink-0 bg-secondary text-white p-3 rounded">
+                    @for(img of sharedService.imagePaths(); track img) {
+                    <img [src]="'file://' + img" (click)="select(img)" [class.border-primary]="img === selectedImage()"
+                        class="m-2 border" style="height: 100px; object-fit: cover; cursor: pointer;">
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
