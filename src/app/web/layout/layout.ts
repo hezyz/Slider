@@ -1,7 +1,8 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { SharedService } from '../../core/shared.service';
 import { RouterOutlet } from '@angular/router';
-import { SegmentModel } from '../../core/segment.model';
+import { OriginalSegmentModel, SegmentModel } from '../../core/segment.model';
+import { SegmentService } from '../../core/segment.service';
 
 @Component({
   selector: 'app-layout',
@@ -12,10 +13,28 @@ import { SegmentModel } from '../../core/segment.model';
 export class Layout implements OnInit {
 
   public readonly sharedService = inject(SharedService);
+  public readonly segmantService = inject(SegmentService);
+
   selectedImage = this.sharedService.selectedImage;
 
-  ngOnInit(): void {
-    this.loadImages(this.sharedService.projectName() || '');
+  async ngOnInit(): Promise<void> {
+    const projectName = this.sharedService.projectName();
+    if (!projectName) {
+      console.warn('No project name set in SharedService');
+      return;
+    }
+
+    try {
+      this.loadImages(projectName);
+      const filePath = (await window.electron.getProjectPath(projectName)).path + "/segments.json";
+      const json = await window.electron.readJsonFile(filePath || '');
+      if (json.success) {
+        this.sharedService.setSegmnents(json.data as SegmentModel[]);
+      }
+    } catch (err) {
+      console.error('❌ Failed to get project path:', err);
+    }
+
   }
 
   /* Actions */
@@ -45,7 +64,11 @@ export class Layout implements OnInit {
   }
 
   async loadTranslated() {
-
+    const projectName = this.sharedService.projectName();
+    if (!projectName) {
+      console.warn('No project name set in SharedService');
+      return;
+    }
     const result = await window.electron.selectJsonFile();
 
     if (result.canceled) {
@@ -54,78 +77,68 @@ export class Layout implements OnInit {
     }
 
     const filePath = result.filePath!;
+    await window.electron.copyFileAndCreateSegments({
+      sourcePath: filePath,
+      projectName: projectName,
+    });
+
     const json = await window.electron.readJsonFile(filePath);
 
     if (json.success) {
-      console.log('Project loaded:', json.data);
-      const segments = this.convertToSegmentModels(json.data || []);
-      this.sharedService.setSegmnents(segments);
-      console.log('Segments:', this.sharedService.segments());
+      const results = await this.segmantService.writeSegmentsToFile(json.data, projectName, "segments.json");
+      this.sharedService.setSegmnents(results);
     } else {
       console.error('Error loading JSON:', json.error);
     }
 
   }
 
-  /* Json Convertot */
-  convertToSegmentModels(jsonArray: any[]): SegmentModel[] {
-    return jsonArray.map((item, index) => ({
-      id: index,
-      text: item.text ?? '',
-      translation: '', // default empty; update later if needed
-      startTime: item.start ?? 0,
-      endTime: item.end ?? 0,
-      slide: item.slide ?? 0,
-      type: item.type ?? 'text'
-    }));
-  }
-  
   /* Manage Slides  */
   async importImages() {
-      const projectName = this.sharedService.projectName();
+    const projectName = this.sharedService.projectName();
 
-      if (!projectName) {
-        console.log('No project selected.');
-        return;
-      }
-
-      const result = await window.electron.importImages(projectName);
-
-      if (result.success) {
-        this.loadImages(projectName);
-        console.log('Merged images:', result.images?.length);
-      } else {
-        console.log('Error importing images:', result.error);
-      }
+    if (!projectName) {
+      console.log('No project selected.');
+      return;
     }
+
+    const result = await window.electron.importImages(projectName);
+
+    if (result.success) {
+      this.loadImages(projectName);
+      console.log('Merged images:', result.images?.length);
+    } else {
+      console.log('Error importing images:', result.error);
+    }
+  }
 
   async loadImages(projectName: string) {
-      if (!projectName) {
-        console.log('No project selected.');
-        return;
-      }
-      const result = await window.electron.getProjectImages(projectName);
-
-      if (result.success) {
-        console.log('Image paths:', result.files?.length);
-        const sortedPaths = this.sortImagePathsByNumber(result.files || []);
-        this.sharedService.imagePaths.set(sortedPaths);
-        this.selectedImage.set(this.sharedService.imagePaths()[0] || '');
-      } else {
-        console.error('Failed to load images:', result.error);
-      }
+    if (!projectName) {
+      console.log('No project selected.');
+      return;
     }
+    const result = await window.electron.getProjectImages(projectName);
 
-    sortImagePathsByNumber(paths: string[]): string[] {
-      return paths.slice().sort((a, b) => {
-        const extractNumber = (filePath: string): number => {
-          const fileName = filePath.split('/').pop() || '';
-          const match = fileName.match(/\d+/);
-          return match ? parseInt(match[0], 10) : 0;
-        };
-
-        return extractNumber(a) - extractNumber(b);
-      });
+    if (result.success) {
+      console.log('Image paths:', result.files?.length);
+      const sortedPaths = this.sortImagePathsByNumber(result.files || []);
+      this.sharedService.imagePaths.set(sortedPaths);
+      this.selectedImage.set(this.sharedService.imagePaths()[0] || '');
+    } else {
+      console.error('Failed to load images:', result.error);
     }
-
   }
+
+  sortImagePathsByNumber(paths: string[]): string[] {
+    return paths.slice().sort((a, b) => {
+      const extractNumber = (filePath: string): number => {
+        const fileName = filePath.split('/').pop() || '';
+        const match = fileName.match(/\d+/);
+        return match ? parseInt(match[0], 10) : 0;
+      };
+
+      return extractNumber(a) - extractNumber(b);
+    });
+  }
+
+}

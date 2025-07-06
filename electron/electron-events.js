@@ -183,3 +183,55 @@ ipcMain.handle('get-project-images', async (_event, projectName) => {
     return { success: false, error: err.message };
   }
 });
+
+ipcMain.handle('copy-file-and-create-segments', async (_event, { sourcePath, projectName }) => {
+  try {
+    const basePath = path.join(__dirname, '..', 'projects', projectName);
+
+    // Ensure project folder exists
+    if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath, { recursive: true });
+    }
+
+    // Copy the file
+    const fileName = path.basename(sourcePath);
+    const targetFilePath = path.join(basePath, fileName);
+    fs.copyFileSync(sourcePath, targetFilePath);
+
+    return { success: true, message: 'File copied.', targetFilePath };
+  } catch (error) {
+    console.error('Error in copy-file:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('write-json-file', async (_event, projectName, fileName, data) => {
+  try {
+    const basePath = path.join(__dirname, '..', 'projects', projectName);
+
+    if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath, { recursive: true });
+    }
+
+    const safeFileName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
+    const filePath = path.join(basePath, safeFileName);
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+
+    return { success: true, path: filePath };
+  } catch (err) {
+    console.error(`❌ Error writing ${fileName}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('get-project-path', async (_event, projectName) => {
+  try {
+    const basePath = path.join(__dirname, '..', 'projects', projectName);
+
+    return { success: true, path: basePath };
+  } catch (err) {
+    console.error(`❌ Error returning path: ${projectName}:`, err);
+    return { success: false, error: err.message };
+  }
+});

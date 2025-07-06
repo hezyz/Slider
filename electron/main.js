@@ -3,14 +3,12 @@ const path = require('path');
 
 let mainWindow;
 
+// Disable security warnings in development
 if (!app.isPackaged) {
   process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 }
 
-if (app.isPackaged) {
-  mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-}
-// Only allow single instance
+// Ensure only one instance runs
 const gotTheLock = app.requestSingleInstanceLock();
 
 function createWindow() {
@@ -22,16 +20,20 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      webSecurity: false,
+      webSecurity: false, // WARNING: set to true for production!
       allowRunningInsecureContent: false,
     },
   });
 
   if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4200');
-    mainWindow.webContents.openDevTools(); // dev only
+    mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.webContents.openDevTools();
+   const indexPath = path.join(__dirname, '../browser/browser/index.html');
+    console.log('Loading index.html from:', indexPath);
+    mainWindow.loadFile(indexPath);
+
   }
 }
 
@@ -39,7 +41,7 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.whenReady().then(() => {
-    createWindow(); // ✅ ONLY called here
+    createWindow();
 
     globalShortcut.register('CommandOrControl+R', () => {
       if (mainWindow) mainWindow.webContents.reload();
@@ -57,9 +59,10 @@ if (!gotTheLock) {
     }
   });
 
-  require('./electron-events'); // Register IPC handlers
+  require('./electron-events'); // ✅ Register IPC handlers
 }
 
+// Clean exit
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

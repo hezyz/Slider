@@ -6,5 +6,8 @@ contextBridge.exposeInMainWorld('electron', {
   readJsonFile: async (filePath) => { return await ipcRenderer.invoke('read-json-file', filePath); },
   importImages: (projectName) => ipcRenderer.invoke('import-images', projectName),
   selectFolder: () => ipcRenderer.invoke('select-folder'),
-  getProjectImages: async (projectName) => { return await ipcRenderer.invoke('get-project-images', projectName); }
+  getProjectImages: async (projectName) => { return await ipcRenderer.invoke('get-project-images', projectName); },
+  copyFileAndCreateSegments: (data) => ipcRenderer.invoke('copy-file-and-create-segments', data),
+  writeJsonFile: (projectName, fileName, data) => ipcRenderer.invoke('write-json-file', projectName, fileName, data),
+  getProjectPath: (projectName) => ipcRenderer.invoke('get-project-path', projectName),
 });

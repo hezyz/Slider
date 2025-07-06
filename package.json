@@ -1,15 +1,26 @@
 {
   "name": "slider",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Desktop slide editor built with Angular and Electron",
+  "author": "Hezy Ziv ",
+  "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "electron": "concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron electron/main.js\""
+    "electron": "concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron electron/main.js\"",
+    "electron:pack": "npm run build && electron-builder"
   },
-  "private": true,
+  "build": {
+    "asar": false,
+    "files": [
+      "electron/**/*",
+      "browser/**/*"
+    ]
+  },
   "dependencies": {
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
@@ -29,6 +40,7 @@
     "@types/jasmine": "~5.1.0",
     "concurrently": "^9.1.2",
     "electron": "^36.4.0",
+    "electron-builder": "^26.0.12",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

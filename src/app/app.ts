@@ -19,7 +19,6 @@ export class App implements OnInit {
   ngOnInit(): void {
 
     const project: string | null = this.sharedService.get('projectName');
-    console.log('Project name on init:', project);
     if (project) {
       this.sharedService.setProjectName(project);
       this.projectName.set(project);

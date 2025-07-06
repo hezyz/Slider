@@ -2,6 +2,7 @@
 
 # custom 
 /projects
+/browser
 
 # Compiled output
 /dist
