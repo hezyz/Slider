@@ -4,6 +4,15 @@ import { OriginalSegmentModel, SegmentModel } from './segment.model';
 @Injectable({ providedIn: 'root' })
 export class SegmentService {
 
+    async saveSegmentsToFile(data: any, projectName: string, fileName: string): Promise<void> {
+        try {
+            await window.electron.writeJsonFile(projectName, fileName, data);
+        } catch (error) {
+            console.error('Error saving segments to file:', error);
+            throw new Error('Failed to save segments.');
+        }
+    }
+
     async writeSegmentsToFile(data: any, projectName: string, fileName: string): Promise<SegmentModel[]> {
         const segments = this.convertToOriginalSegmentModels(data || []);
         const convertedData = this.convertToSegmentModel(segments);

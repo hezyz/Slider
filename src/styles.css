@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+html,body {height: 100%;overflow: hidden;/* Prevent whole-page scroll */}
+.circle-number {display: inline-block;width: 20px;height: 20px;background-color: #616364;color: white;
+  border-radius: 50%;text-align: center;line-height: 20px;font-size: 11px;font-weight: bold;}
+  .badge-number {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  color: white;
+  font-size: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 20px;
+  pointer-events: none;
+}
