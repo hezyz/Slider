@@ -3,6 +3,8 @@ import { Router, RouterOutlet } from '@angular/router';
 import { SharedService } from './core/shared.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SegmentService } from './core/segment.service';
+import { SegmentModel } from './core/segment.model';
 
 @Component({
   selector: 'app-root',
@@ -12,8 +14,9 @@ import { FormsModule } from '@angular/forms';
 })
 export class App implements OnInit {
 
-  protected title = 'Slider';
+  protected title = 'Slide Editor';
   public readonly sharedService = inject(SharedService);
+  public readonly segmentService = inject(SegmentService);
   private readonly router = inject(Router);
 
   projectName = signal('');
@@ -36,17 +39,31 @@ export class App implements OnInit {
     return this.sharedService.projectName() !== null;
   }
 
-  ngOnInit(): void {
-    const project: string | null = this.sharedService.get('projectName');
-    if (project) {
-      this.sharedService.setProjectName(project);
-      this.projectName.set(project);
-      this.router.navigate(['/project']);
-    } else {
+  async ngOnInit(): Promise<void> {
+    const projectName: string | null = this.sharedService.get('projectName');
+    if (!projectName) {
+      console.warn('No project name set in SharedService');
       this.router.navigate(['/']);
+    } else {
+      this.sharedService.setProjectName(projectName);
+      this.projectName.set(projectName);
+      this.loadData(projectName)
+      this.router.navigate(['/project']);
     }
   }
 
+  async loadData(projectName: string) {
+    try {
+      await this.sharedService.loadImages(projectName);
+      const filePath = (await window.electron.getProjectPath(projectName)).path + "/segments.json";
+      const json = await window.electron.readJsonFile(filePath || '');
+      if (json.success) {
+        this.sharedService.setSegmnents(json.data as SegmentModel[]);
+      }
+    } catch (err) {
+      console.error('❌ Failed to get project path:', err);
+    }
+  }
   async openProject() {
     const result = await window.electron.selectJsonFile();
 
@@ -64,6 +81,7 @@ export class App implements OnInit {
       this.sharedService.set('projectName', json.data.name);
       this.sharedService.setProjectName(json.data.name);
       this.projectName.set(json.data.name);
+      this.loadData(json.data.name);
       this.router.navigate(['/project']);
     } else {
       console.error('Error loading JSON:', json.error);
@@ -74,13 +92,12 @@ export class App implements OnInit {
     // Implementation for save project
   }
 
-  saveAsProject() {
-    console.log('Save As clicked');
-    // add your logic here
+  newProject() {
+    this.closeProject();
   }
 
   closeProject() {
-    this.sharedService.set('projectName', null);
+    this.sharedService.closeProject();
     this.router.navigate(['/']);
   }
 
@@ -146,10 +163,40 @@ export class App implements OnInit {
 
     if (result.success) {
       // Let the layout component handle reloading images
-      console.log('Merged images:', result.images?.length);
+      console.log('Merged images:', result.images?.length || 0);
+      this.loadData(projectName);
       // You might want to emit an event or call a method to refresh images
     } else {
       console.log('Error importing images:', result.error);
+    }
+  }
+
+  async loadTranslated() {
+    const projectName = this.sharedService.projectName();
+    if (!projectName) {
+      console.warn('No project name set in SharedService');
+      return;
+    }
+    const result = await window.electron.selectJsonFile();
+
+    if (result.canceled) {
+      console.log('User cancelled file selection.');
+      return;
+    }
+
+    const filePath = result.filePath!;
+    await window.electron.copyFileAndCreateSegments({
+      sourcePath: filePath,
+      projectName: projectName,
+    });
+
+    const json = await window.electron.readJsonFile(filePath);
+
+    if (json.success) {
+      const results = await this.segmentService.writeSegmentsToFile(json.data, projectName, "segments.json");
+      this.sharedService.setSegmnents(results);
+    } else {
+      console.error('Error loading JSON:', json.error);
     }
   }
 }

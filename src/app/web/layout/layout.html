@@ -1,11 +1,17 @@
 <!-- Layout content without navigation -->
 <div class="container-fluid bg-light" style="height: calc(100vh - 56px); overflow: hidden;">
     <!-- First Row: 2 columns -->
-    <div class="row" style="height: 70vh; overflow: hidden;">
+    <div class="row" style="height: 75vh; overflow: hidden;">
         <!-- Left Column (Y Scroll Only) -->
         <div class="col-md-4 border-end left-column-scroll" style="height: 100%; overflow-y: auto;">
             <div class="p-3">
-                <button class="btn btn-sm btn-secondary mb-3" (click)="loadTranslated()">Load text</button>
+                @if(sharedService.segments().length === 0) {
+                <h4>Please add segments to project.</h4>
+                <ul>
+                    <li>Top menu: click "Project"</li>
+                    <li>Click "Load segments" to load existing segments</li>
+                </ul>
+                }
                 @for(segment of sharedService.segments(); track segment) {
                 <div class="card border-dark mb-2" [id]="'segment-' + segment.slide">
                     <div class="card-header">
@@ -51,22 +57,38 @@
     </div>
 
     <!-- Second Row: X Scroll of All Slides -->
-    <div class="row border-top" style="height: 30vh;">
+    <div class="row border-top" style="height: 25vh;">
         <div class="col-12 mt-3">
-            <div #scrollContainer class="d-flex overflow-auto px-3" style="gap: 1rem; cursor: grab;"
-                (mousedown)="startDrag($event)" (mousemove)="onDrag($event)" (mouseup)="endDrag()"
-                (mouseleave)="endDrag()">
+            @if(sharedService.imagePaths().length === 0) {
+            <div class="d-flex justify-content-center">
+                <h4>Please add slides to project.</h4>
+                <ul>
+                    <li>Top menu: click "Project"</li>
+                    <li>Click "Load slides" to load existing slides</li>
+                </ul>
+            </div>
+            } @else {
+            <div #scrollContainer 
+                 class="d-flex overflow-auto px-3" 
+                 style="gap: 1rem; cursor: grab; user-select: none;"
+                 (mousedown)="startDrag($event)"
+                 (mouseleave)="onDragLeave()"
+                 (contextmenu)="$event.preventDefault()">
                 <div class="flex-shrink-0 bg-secondary text-white p-1 rounded">
                     @for(img of sharedService.imagePaths(); track img; let i = $index) {
                     <div class="position-relative d-inline-block m-2">
-                        <img [src]="'file://' + img" (click)="select(img)"
-                            [class.border-primary]="img === selectedImage()" class="border"
-                            style="height: 80px; object-fit: cover; cursor: pointer;">
+                        <img [src]="'file://' + img" 
+                             (click)="select(img)"
+                             [class.border-primary]="img === selectedImage()" 
+                             class="border"
+                             style="height: 80px; object-fit: cover; cursor: pointer; pointer-events: auto;"
+                             (dragstart)="$event.preventDefault()">
                         <span class="badge-number bg-secondary">{{ i + 1 }}</span>
                     </div>
                     }
                 </div>
             </div>
+            }
         </div>
     </div>
 </div>

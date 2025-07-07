@@ -11,7 +11,32 @@ export class SharedService {
 
   segments = signal<SegmentModel[]>([])
 
-  setProjectName(path: string) {
+   async loadImages(projectName: string) {
+    if (!projectName) {
+      console.log('No project selected.');
+      return;
+    }
+    const result = await window.electron.getProjectImages(projectName);
+
+    if (result.success) {
+      console.log('Image paths:', result.files?.length);
+      const sortedPaths = this.sortImagePathsByNumber(result.files || []);
+      this.imagePaths.set(sortedPaths);
+      this.selectedImage.set(this.imagePaths()[0] || '');
+    } else {
+      console.error('Failed to load images:', result.error);
+    }
+  }
+
+  closeProject(){
+    this.projectName.set(null);
+    this.imagePaths.set([]);
+    this.selectedImage.set(null);
+    this.segments.set([]);
+    this.remove('projectName');
+  }
+
+  setProjectName(path: string | null) {
     this.projectName.set(path);
   }
 
@@ -78,5 +103,18 @@ export class SharedService {
 
     // Type assertion — safe because it's managed by us
     return this.signals.get(key) as WritableSignal<T | null>;
+  }
+
+  /* Helpers */
+    private sortImagePathsByNumber(paths: string[]): string[] {
+    return paths.slice().sort((a, b) => {
+      const extractNumber = (filePath: string): number => {
+        const fileName = filePath.split('/').pop() || '';
+        const match = fileName.match(/\d+/);
+        return match ? parseInt(match[0], 10) : 0;
+      };
+
+      return extractNumber(a) - extractNumber(b);
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, inject, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { Component, computed, ElementRef, inject, signal, ViewChild, effect, AfterViewInit, OnDestroy } from '@angular/core';
 import { SharedService } from '../../core/shared.service';
 import { RouterOutlet } from '@angular/router';
 import { SegmentModel } from '../../core/segment.model';
@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './layout.html',
   styleUrl: './layout.css'
 })
-export class Layout implements OnInit {
+export class Layout implements AfterViewInit, OnDestroy { // Implement AfterViewInit and OnDestroy
 
   public readonly sharedService = inject(SharedService);
   public readonly segmentService = inject(SegmentService);
@@ -24,7 +24,7 @@ export class Layout implements OnInit {
   );
 
   //Drag scroll
-  @ViewChild('scrollContainer', { static: true }) scrollContainer!: ElementRef<HTMLElement>;
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>; // No static: true
 
   private isDragging = signal(false);
   private startX = 0;
@@ -36,27 +36,19 @@ export class Layout implements OnInit {
       const index = this.currentIndex();
       if (index >= 0) {
         // Use setTimeout to ensure DOM is updated
+        // This setTimeout might not always be reliable for DOM updates if rendering takes longer.
+        // Consider using NgZone.runOutsideAngular for performance-critical DOM manipulations
+        // or ensure the effect runs after Angular's change detection.
         setTimeout(() => this.scrollToSelectedImage(), 100);
       }
     });
   }
 
-  async ngOnInit(): Promise<void> {
-    const projectName = this.sharedService.projectName();
-    if (!projectName) {
-      console.warn('No project name set in SharedService');
-      return;
-    }
-
-    try {
-      await this.loadImages(projectName);
-      const filePath = (await window.electron.getProjectPath(projectName)).path + "/segments.json";
-      const json = await window.electron.readJsonFile(filePath || '');
-      if (json.success) {
-        this.sharedService.setSegmnents(json.data as SegmentModel[]);
-      }
-    } catch (err) {
-      console.error('❌ Failed to get project path:', err);
+  ngAfterViewInit() {
+    // Ensure scrollContainer is available after view initialization
+    if (this.scrollContainer) {
+      // It's generally better to add event listeners in ngAfterViewInit for ViewChild elements
+      // if they are not static.
     }
   }
 
@@ -96,10 +88,12 @@ export class Layout implements OnInit {
   }
 
   scrollToSelectedImage() {
+    // This method needs to scroll the `.left-column-scroll` div, not the image list.
+    // Ensure the selector correctly targets the scrollable container.
     const currentSlide = this.currentIndex() + 1;
 
     const el = document.querySelector(`#segment-${currentSlide}`) as HTMLElement;
-    const container = document.querySelector('.left-column-scroll') as HTMLElement;
+    const container = document.querySelector('.left-column-scroll') as HTMLElement; // Ensure this selector is correct
 
     if (el && container) {
       const elTop = el.getBoundingClientRect().top;
@@ -110,85 +104,66 @@ export class Layout implements OnInit {
     }
   }
 
-  async loadTranslated() {
-    const projectName = this.sharedService.projectName();
-    if (!projectName) {
-      console.warn('No project name set in SharedService');
-      return;
-    }
-    const result = await window.electron.selectJsonFile();
-
-    if (result.canceled) {
-      console.log('User cancelled file selection.');
-      return;
-    }
-
-    const filePath = result.filePath!;
-    await window.electron.copyFileAndCreateSegments({
-      sourcePath: filePath,
-      projectName: projectName,
-    });
-
-    const json = await window.electron.readJsonFile(filePath);
-
-    if (json.success) {
-      const results = await this.segmentService.writeSegmentsToFile(json.data, projectName, "segments.json");
-      this.sharedService.setSegmnents(results);
-    } else {
-      console.error('Error loading JSON:', json.error);
-    }
-  }
-
-  /* Manage Slides  */
-  async loadImages(projectName: string) {
-    if (!projectName) {
-      console.log('No project selected.');
-      return;
-    }
-    const result = await window.electron.getProjectImages(projectName);
-
-    if (result.success) {
-      console.log('Image paths:', result.files?.length);
-      const sortedPaths = this.sortImagePathsByNumber(result.files || []);
-      this.sharedService.imagePaths.set(sortedPaths);
-      this.selectedImage.set(this.sharedService.imagePaths()[0] || '');
-    } else {
-      console.error('Failed to load images:', result.error);
-    }
-  }
-
-  sortImagePathsByNumber(paths: string[]): string[] {
-    return paths.slice().sort((a, b) => {
-      const extractNumber = (filePath: string): number => {
-        const fileName = filePath.split('/').pop() || '';
-        const match = fileName.match(/\d+/);
-        return match ? parseInt(match[0], 10) : 0;
-      };
-
-      return extractNumber(a) - extractNumber(b);
-    });
-  }
-
   startDrag(event: MouseEvent) {
+    if (!this.scrollContainer?.nativeElement) return;
+
     const el = this.scrollContainer.nativeElement;
     this.isDragging.set(true);
     this.startX = event.pageX - el.offsetLeft;
     this.scrollLeft = el.scrollLeft;
     el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none'; // Prevent text selection
     event.preventDefault();
+
+    // Bind event listeners with 'this' context
+    document.addEventListener('mousemove', this.handleMouseMoveBounded, { passive: false });
+    document.addEventListener('mouseup', this.handleMouseUpBounded, { passive: false });
+    // Using `mouseleave` on `document` can sometimes be tricky. Consider listening on `el` itself for `mouseleave` or only relying on `mouseup`.
+    document.addEventListener('mouseleave', this.handleMouseUpBounded, { passive: false });
   }
 
-  onDrag(event: MouseEvent) {
-    if (!this.isDragging()) return;
+  // Use arrow functions or bind in the constructor/startDrag to preserve 'this' context
+  private handleMouseMove = (event: MouseEvent) => {
+    if (!this.isDragging() || !this.scrollContainer?.nativeElement) return;
 
     const el = this.scrollContainer.nativeElement;
     const x = event.pageX - el.offsetLeft;
-    const walk = (x - this.startX) * 1.5;
+    const walk = (x - this.startX) * 1.5; // Adjust sensitivity as needed
     el.scrollLeft = this.scrollLeft - walk;
+    event.preventDefault();
   }
 
-  endDrag() {
+  private handleMouseUp = () => {
     this.isDragging.set(false);
-    this.scrollContainer.nativeElement.style.cursor = 'grab';
+    if (this.scrollContainer?.nativeElement) {
+      this.scrollContainer.nativeElement.style.cursor = 'grab';
+      this.scrollContainer.nativeElement.style.userSelect = '';
+    }
+
+    // Remove global event listeners
+    document.removeEventListener('mousemove', this.handleMouseMoveBounded);
+    document.removeEventListener('mouseup', this.handleMouseUpBounded);
+    document.removeEventListener('mouseleave', this.handleMouseUpBounded);
+  }
+
+  // Bounded versions of the handlers to ensure 'this' context
+  private handleMouseMoveBounded = this.handleMouseMove.bind(this);
+  private handleMouseUpBounded = this.handleMouseUp.bind(this);
+
+
+  // Add this method to handle drag leave events (on the container itself)
+  onDragLeave() {
+    // Only call handleMouseUp if actively dragging within the container
+    if (this.isDragging()) {
+      this.handleMouseUp();
+    }
+  }
+
+  // Clean up event listeners when component is destroyed
+  ngOnDestroy() {
+    // Ensure all event listeners are removed to prevent memory leaks
+    document.removeEventListener('mousemove', this.handleMouseMoveBounded);
+    document.removeEventListener('mouseup', this.handleMouseUpBounded);
+    document.removeEventListener('mouseleave', this.handleMouseUpBounded);
   }
 }

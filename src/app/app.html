@@ -3,19 +3,41 @@
     <div class="container-fluid">
         <!-- Left: Brand and File Menu -->
         <div class="d-flex align-items-center">
-            <a class="navbar-brand me-3" href="#">Slider Editor</a>
-            <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    File
-                </button>
-                <ul class="dropdown-menu">
-                    <li><button class="dropdown-item" type="button" (click)="openProject()">Open Project</button></li>
-                    <li><button class="dropdown-item" type="button" (click)="saveProject()" [disabled]="!isProjectLoaded">Save Project</button></li>
-                    <li><button class="dropdown-item" type="button" (click)="saveAsProject()" [disabled]="!isProjectLoaded">Save As...</button></li>
-                    <li><button class="dropdown-item" type="button" (click)="closeProject()" [disabled]="!isProjectLoaded">Close Project</button></li>
-                </ul>
-            </div>
+            <a class="navbar-brand me-3">
+               Project:  {{ sharedService.projectName()? sharedService.projectName() : 'new' }}
+            </a>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        File
+                    </a>
+                    <ul class="dropdown-menu">
+                          <li><button class="dropdown-item" type="button" (click)="newProject()">New Project</button>
+                        <li><button class="dropdown-item" type="button" (click)="openProject()">Open Project</button>
+                        </li>
+                        <li><button class="dropdown-item" type="button" (click)="saveProject()"
+                                [disabled]="!isProjectLoaded">Save Project</button></li>
+                        <li><button class="dropdown-item" type="button" (click)="closeProject()"
+                                [disabled]="!isProjectLoaded">Close Project</button></li>
+                    </ul>
+                </li>
+                @if(isProjectLoaded){
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Project
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li><button class="dropdown-item" type="button" (click)="importImages()"
+                                [disabled]="!isProjectLoaded">Add Slides</button></li>
+                        <li><button class="dropdown-item" type="button" (click)="loadTranslated()"
+                                [disabled]="!isProjectLoaded">Load segments</button></li>
+                    </ul>
+                </li>
+                }
+            </ul>
         </div>
 
         <!-- Center: Project Navigation (only shown when project is loaded and has images) -->
@@ -33,18 +55,15 @@
             <button class="btn btn-outline-light btn-sm me-3" (click)="goToEnd()" [disabled]="!hasNext">
                 <i class="bi bi-fast-forward"></i>
             </button>
-            <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" 
+            <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary"
                 style="width: 60px;" min="1" [max]="sharedService.imagePaths().length" [(ngModel)]="slideInput" />
             <button class="btn btn-sm btn-primary" (click)="goToSlide()">Go</button>
         </div>
 
         <!-- Right: Project Name and Add Slide -->
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-sm btn-success" (click)="importImages()" *ngIf="isProjectLoaded">
-                <i class="bi bi-plus-circle me-1"></i>Add Slide
-            </button>
-            <span class="navbar-text text-light" *ngIf="isProjectLoaded">
-                {{ sharedService.projectName() }}
+            <span class="navbar-text text-light">
+                Text
             </span>
         </div>
     </div>
