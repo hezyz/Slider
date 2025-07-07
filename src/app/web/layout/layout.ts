@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnInit, signal, ViewChild, effect } from '@angular/core';
 import { SharedService } from '../../core/shared.service';
 import { RouterOutlet } from '@angular/router';
 import { SegmentModel } from '../../core/segment.model';
@@ -23,11 +23,6 @@ export class Layout implements OnInit {
     this.sharedService.imagePaths().indexOf(this.sharedService.selectedImage() || '')
   );
 
-  hasPrevious = computed(() => this.currentIndex() > 0);
-  hasNext = computed(() => this.currentIndex() < this.sharedService.imagePaths().length - 1);
-
-  slideInput = 1;
-
   //Drag scroll
   @ViewChild('scrollContainer', { static: true }) scrollContainer!: ElementRef<HTMLElement>;
 
@@ -35,8 +30,18 @@ export class Layout implements OnInit {
   private startX = 0;
   private scrollLeft = 0;
 
+  constructor() {
+    // Watch for changes in currentIndex and auto-scroll
+    effect(() => {
+      const index = this.currentIndex();
+      if (index >= 0) {
+        // Use setTimeout to ensure DOM is updated
+        setTimeout(() => this.scrollToSelectedImage(), 100);
+      }
+    });
+  }
+
   async ngOnInit(): Promise<void> {
-    this.syncSlideInput();
     const projectName = this.sharedService.projectName();
     if (!projectName) {
       console.warn('No project name set in SharedService');
@@ -44,7 +49,7 @@ export class Layout implements OnInit {
     }
 
     try {
-      this.loadImages(projectName);
+      await this.loadImages(projectName);
       const filePath = (await window.electron.getProjectPath(projectName)).path + "/segments.json";
       const json = await window.electron.readJsonFile(filePath || '');
       if (json.success) {
@@ -53,10 +58,6 @@ export class Layout implements OnInit {
     } catch (err) {
       console.error('❌ Failed to get project path:', err);
     }
-  }
-
-  syncSlideInput() {
-    this.slideInput = this.currentIndex() + 1;
   }
 
   /* Actions */
@@ -83,7 +84,6 @@ export class Layout implements OnInit {
     try {
       await this.segmentService.saveSegmentsToFile(this.sharedService.segments(), projectName, "segments.json");
       console.log('✅ Segments saved successfully.');
-      //alert('Segments saved successfully.');
     } catch (err) {
       console.error('❌ Failed to save segments:', err);
       alert('Failed to save segments. Please try again.');
@@ -92,73 +92,21 @@ export class Layout implements OnInit {
 
   select(img: string) {
     this.sharedService.selectImage(img);
-    this.scrollToSelectedImage();
+    // The effect will automatically trigger scrollToSelectedImage()
   }
 
   scrollToSelectedImage() {
     const currentSlide = this.currentIndex() + 1;
 
-    setTimeout(() => {
-      const el = document.querySelector(`#segment-${currentSlide}`) as HTMLElement;
-      const container = document.querySelector('.left-column-scroll') as HTMLElement;
+    const el = document.querySelector(`#segment-${currentSlide}`) as HTMLElement;
+    const container = document.querySelector('.left-column-scroll') as HTMLElement;
 
-      if (el && container) {
-        const elTop = el.getBoundingClientRect().top;
-        const containerTop = container.getBoundingClientRect().top;
-        const scrollOffset = elTop - containerTop + container.scrollTop;
+    if (el && container) {
+      const elTop = el.getBoundingClientRect().top;
+      const containerTop = container.getBoundingClientRect().top;
+      const scrollOffset = elTop - containerTop + container.scrollTop;
 
-        container.scrollTo({ top: scrollOffset, behavior: 'smooth' });
-      }
-    }, 50);
-  }
-
-  goToPrevious() {
-    const idx = this.currentIndex();
-    const paths = this.sharedService.imagePaths();
-    if (idx > 0) {
-      this.sharedService.selectedImage.set(paths[idx - 1]);
-      this.scrollToSelectedImage();
-      this.syncSlideInput();
-    }
-  }
-
-  goToNext() {
-    const idx = this.currentIndex();
-    const paths = this.sharedService.imagePaths();
-    if (idx < paths.length - 1) {
-      this.sharedService.selectedImage.set(paths[idx + 1]);
-      this.scrollToSelectedImage();
-      this.syncSlideInput();
-    }
-  }
-
-  goToSlide() {
-    const index = this.slideInput - 1;
-    const paths = this.sharedService.imagePaths();
-    if (index >= 0 && index < paths.length) {
-      this.sharedService.selectedImage.set(paths[index]);
-      this.scrollToSelectedImage();
-      this.syncSlideInput();
-    } else {
-      alert(`Slide number must be between 1 and ${paths.length}`);
-    }
-  }
-
-  goToStart() {
-    const paths = this.sharedService.imagePaths();
-    if (paths.length > 0) {
-      this.sharedService.selectedImage.set(paths[0]);
-      this.scrollToSelectedImage();
-      this.syncSlideInput();
-    }
-  }
-
-  goToEnd() {
-    const paths = this.sharedService.imagePaths();
-    if (paths.length > 0) {
-      this.sharedService.selectedImage.set(paths[paths.length - 1]);
-      this.scrollToSelectedImage();
-      this.syncSlideInput();
+      container.scrollTo({ top: scrollOffset, behavior: 'smooth' });
     }
   }
 
@@ -189,28 +137,9 @@ export class Layout implements OnInit {
     } else {
       console.error('Error loading JSON:', json.error);
     }
-
   }
 
   /* Manage Slides  */
-  async importImages() {
-    const projectName = this.sharedService.projectName();
-
-    if (!projectName) {
-      console.log('No project selected.');
-      return;
-    }
-
-    const result = await window.electron.importImages(projectName);
-
-    if (result.success) {
-      this.loadImages(projectName);
-      console.log('Merged images:', result.images?.length);
-    } else {
-      console.log('Error importing images:', result.error);
-    }
-  }
-
   async loadImages(projectName: string) {
     if (!projectName) {
       console.log('No project selected.');
@@ -262,5 +191,4 @@ export class Layout implements OnInit {
     this.isDragging.set(false);
     this.scrollContainer.nativeElement.style.cursor = 'grab';
   }
-
 }

@@ -1,34 +1,5 @@
-<nav class="navbar bg-light border-bottom sticky-top" style="top: 56px; z-index: 1020;">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-
-        <!-- Left: Project Name -->
-        <span class="navbar-text">
-            Editing: {{ sharedService.projectName() }}
-        </span>
-
-        <!-- Center: Prev / Current / Next + Go to slide -->
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-primary btn-sm" (click)="goToStart()" [disabled]="!hasPrevious()">
-                <i class="bi bi-rewind"></i>
-            </button>
-            <button class="btn btn-outline-primary btn-sm" (click)="goToPrevious()" [disabled]="!hasPrevious()"><i
-                    class="bi bi-caret-left"></i></button>
-            <span>{{ currentIndex() + 1 }} / {{ sharedService.imagePaths().length }}</span>
-            <button class="btn btn-outline-primary btn-sm" (click)="goToNext()" [disabled]="!hasNext()"><i
-                    class="bi bi-caret-right"></i></button>
-            <button class="btn btn-outline-primary btn-sm me-5" (click)="goToEnd()" [disabled]="!hasNext()">
-                <i class="bi bi-fast-forward"></i>
-            </button>
-            <input type="number" class="form-control form-control-sm" style="width: 60px;" min="1"
-                [max]="sharedService.imagePaths().length" [(ngModel)]="slideInput" />
-            <button class="btn btn-sm btn-primary" (click)="goToSlide()">Go</button>
-        </div>
-        <!-- Right: Add Slide -->
-        <button class="btn btn-sm btn-primary" (click)="importImages()">Add Slide</button>
-    </div>
-</nav>
-
-<div class="container-fluid bg-light" style="height: calc(100% - 56px); overflow: hidden;">
+<!-- Layout content without navigation -->
+<div class="container-fluid bg-light" style="height: calc(100vh - 56px); overflow: hidden;">
     <!-- First Row: 2 columns -->
     <div class="row" style="height: 70vh; overflow: hidden;">
         <!-- Left Column (Y Scroll Only) -->
@@ -77,7 +48,6 @@
                 <router-outlet></router-outlet>
             </div>
         </div>
-
     </div>
 
     <!-- Second Row: X Scroll of All Slides -->

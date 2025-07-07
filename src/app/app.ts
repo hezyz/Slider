@@ -1,10 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { SharedService } from './core/shared.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, CommonModule, FormsModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -15,9 +17,26 @@ export class App implements OnInit {
   private readonly router = inject(Router);
 
   projectName = signal('');
+  slideInput = 1;
+
+  // Computed properties for navigation
+  get currentIndex() {
+    return this.sharedService.imagePaths().indexOf(this.sharedService.selectedImage() || '');
+  }
+
+  get hasPrevious() {
+    return this.currentIndex > 0;
+  }
+
+  get hasNext() {
+    return this.currentIndex < this.sharedService.imagePaths().length - 1;
+  }
+
+  get isProjectLoaded() {
+    return this.sharedService.projectName() !== null;
+  }
 
   ngOnInit(): void {
-
     const project: string | null = this.sharedService.get('projectName');
     if (project) {
       this.sharedService.setProjectName(project);
@@ -29,7 +48,6 @@ export class App implements OnInit {
   }
 
   async openProject() {
-
     const result = await window.electron.selectJsonFile();
 
     if (result.canceled) {
@@ -53,7 +71,7 @@ export class App implements OnInit {
   }
 
   async saveProject() {
-
+    // Implementation for save project
   }
 
   saveAsProject() {
@@ -63,6 +81,75 @@ export class App implements OnInit {
 
   closeProject() {
     this.sharedService.set('projectName', null);
+    this.router.navigate(['/']);
+  }
+
+  // Navigation methods moved from layout
+  syncSlideInput() {
+    this.slideInput = this.currentIndex + 1;
+  }
+
+  goToPrevious() {
+    const idx = this.currentIndex;
+    const paths = this.sharedService.imagePaths();
+    if (idx > 0) {
+      this.sharedService.selectedImage.set(paths[idx - 1]);
+      this.syncSlideInput();
+    }
+  }
+
+  goToNext() {
+    const idx = this.currentIndex;
+    const paths = this.sharedService.imagePaths();
+    if (idx < paths.length - 1) {
+      this.sharedService.selectedImage.set(paths[idx + 1]);
+      this.syncSlideInput();
+    }
+  }
+
+  goToSlide() {
+    const index = this.slideInput - 1;
+    const paths = this.sharedService.imagePaths();
+    if (index >= 0 && index < paths.length) {
+      this.sharedService.selectedImage.set(paths[index]);
+      this.syncSlideInput();
+    } else {
+      alert(`Slide number must be between 1 and ${paths.length}`);
+    }
+  }
+
+  goToStart() {
+    const paths = this.sharedService.imagePaths();
+    if (paths.length > 0) {
+      this.sharedService.selectedImage.set(paths[0]);
+      this.syncSlideInput();
+    }
+  }
+
+  goToEnd() {
+    const paths = this.sharedService.imagePaths();
+    if (paths.length > 0) {
+      this.sharedService.selectedImage.set(paths[paths.length - 1]);
+      this.syncSlideInput();
+    }
+  }
+
+  async importImages() {
+    const projectName = this.sharedService.projectName();
+
+    if (!projectName) {
+      console.log('No project selected.');
+      return;
+    }
+
+    const result = await window.electron.importImages(projectName);
+
+    if (result.success) {
+      // Let the layout component handle reloading images
+      console.log('Merged images:', result.images?.length);
+      // You might want to emit an event or call a method to refresh images
+    } else {
+      console.log('Error importing images:', result.error);
+    }
   }
 }
-
