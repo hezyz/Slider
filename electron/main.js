@@ -60,6 +60,7 @@ if (!gotTheLock) {
   });
 
   require('./electron-events'); // ✅ Register IPC handlers
+  require('./python-events'); // ✅ Register IPC handlers
 }
 
 // Clean exit

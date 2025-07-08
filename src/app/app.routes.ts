@@ -17,5 +17,10 @@ export const routes: Routes = [
                     import('./web/editor/editor').then(c => c.Editor),
             },
         ]
-    }
+    },
+    {
+        path: 'audio-processor',
+        loadComponent: () =>
+            import('./web/python/audio-processor/audio-processor').then(c => c.AudioProcessor),
+    },
 ];

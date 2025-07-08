@@ -14,6 +14,13 @@ declare global {
       }) => Promise<{ success: boolean; message?: string; error?: string; targetFilePath?: string }>;
       writeJsonFile: (projectName: string, fileName: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
       getProjectPath: (projectName: string) => Promise<{ success: boolean; path?: string; error?: string; }>;
+
+      //Python integration
+      runAudioExtraction: (inputPath: string, outputPath: string) => Promise<{ success: boolean; error?: string }>;
+      checkPythonDependencies: () => Promise<{ python: boolean; ffmpeg: boolean; ready: boolean }>;
+      onAudioExtractionProgress: (callback: (data: any) => void) => void;
+      onAudioExtractionStatus: (callback: (data: any) => void) => void;
+      removeAudioExtractionListeners: () => void;
     };
   }
 }

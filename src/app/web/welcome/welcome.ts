@@ -37,6 +37,16 @@ export class Welcome {
     } else {
       this.errorMessage.set(result?.error || 'Unknown error occurred');
     }
-
   }
+
+  // Python event handlers
+  async extractAudioFromVideo(videoPath: string, outputPath: string) {
+    try {
+      const result = await (window as any).electron.runAudioExtraction(videoPath, outputPath);
+      console.log('✅ Extraction succeeded:', result);
+    } catch (err) {
+      console.error('❌ Extraction failed:', err);
+    }
+  }
+
 }
