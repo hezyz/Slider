@@ -1,0 +1,208 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="bi bi-file-text me-2"></i>
+      Step 2: Transcription
+    </h5>
+  </div>
+  <div class="card-body">
+    <!-- Audio File Info -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">
+          <i class="bi bi-music-note me-2"></i>
+          <strong>Audio File Ready:</strong> 
+          <code>{{ getDisplayPath(audioPath()) }}</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcription Settings -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label for="language" class="form-label fw-bold">
+          <i class="bi bi-globe me-2"></i>
+          Language
+        </label>
+        <select 
+          id="language"
+          class="form-select" 
+          [(ngModel)]="language"
+          [disabled]="isTranscribing()">
+          @for (option of languageOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+      
+      <div class="col-md-6">
+        <label for="model" class="form-label fw-bold">
+          <i class="bi bi-cpu me-2"></i>
+          Model Size
+        </label>
+        <select 
+          id="model"
+          class="form-select" 
+          [(ngModel)]="modelSize"
+          [disabled]="isTranscribing()">
+          @for (option of modelOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        <div class="form-text">
+          Estimated time: {{ estimatedTime() }} minutes
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Corrections -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <label for="corrections" class="form-label fw-bold">
+          <i class="bi bi-pencil-square me-2"></i>
+          Text Corrections (Optional)
+        </label>
+        <div class="d-flex gap-2 mb-2">
+          <button 
+            type="button" 
+            (click)="loadDefaultCorrections()" 
+            class="btn btn-outline-primary btn-sm"
+            [disabled]="isTranscribing()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Load Defaults
+          </button>
+          <button 
+            type="button" 
+            (click)="formatCorrections()" 
+            class="btn btn-outline-secondary btn-sm"
+            [disabled]="isTranscribing()">
+            <i class="bi bi-code me-1"></i>
+            Format JSON
+          </button>
+          <button 
+            type="button" 
+            (click)="clearCorrections()" 
+            class="btn btn-outline-danger btn-sm"
+            [disabled]="isTranscribing()">
+            <i class="bi bi-trash me-1"></i>
+            Clear
+          </button>
+        </div>
+        <textarea 
+          id="corrections"
+          class="form-control font-monospace" 
+          rows="6"
+          [(ngModel)]="corrections"
+          [disabled]="isTranscribing()"
+          [class.is-invalid]="!validateCorrections()"
+          placeholder="Enter JSON corrections here">
+        </textarea>
+        @if (!validateCorrections()) {
+          <div class="invalid-feedback">
+            Invalid JSON format. Please check your corrections.
+          </div>
+        }
+        <div class="form-text">
+          JSON format: enter corrections as key-value pairs
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Transcription Button -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-grid">
+          <button 
+            (click)="startTranscription()" 
+            [disabled]="!canTranscribe()"
+            class="btn btn-success btn-lg">
+            @if (isTranscribing()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Transcribing Audio...
+            } @else {
+              <i class="bi bi-play-circle me-2"></i>
+              Start Transcription
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    @if (progress() > 0 && isTranscribing()) {
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold">Transcription Progress</span>
+            <span class="text-muted">{{ progress() }}%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div 
+              class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+              [style.width.%]="progress()"
+              role="progressbar">
+            </div>
+          </div>
+          <div class="form-text text-center mt-2">
+            This may take several minutes depending on audio length and model size...
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Results -->
+    @if (transcriptionResult()) {
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="alert alert-success" role="alert">
+            <h6 class="alert-heading">
+              <i class="bi bi-check-circle me-2"></i>
+              Transcription Complete!
+            </h6>
+            <p class="mb-0">{{ transcriptionResult() }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Status Message -->
+    @if (statusMessage()) {
+      @if (hasError()) {
+        <div class="alert alert-danger" role="alert">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          {{ statusMessage() }}
+        </div>
+      } @else if (statusMessage().includes('successfully')) {
+        <div class="alert alert-success" role="alert">
+          <i class="bi bi-check-circle me-2"></i>
+          {{ statusMessage() }}
+        </div>
+      } @else {
+        <div class="alert alert-primary" role="alert">
+          <i class="bi bi-info-circle me-2"></i>
+          {{ statusMessage() }}
+        </div>
+      }
+    }
+
+    <!-- Tips -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card bg-light">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="bi bi-lightbulb me-2"></i>
+              Tips for Better Transcription
+            </h6>
+            <ul class="mb-0">
+              <li><strong>Model Size:</strong> Use 'medium' for best balance of speed and accuracy</li>
+              <li><strong>Language:</strong> Select the correct language for better results</li>
+              <li><strong>Corrections:</strong> Add common mistakes to improve final output</li>
+              <li><strong>Audio Quality:</strong> Clear audio with minimal background noise works best</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

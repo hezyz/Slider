@@ -1,0 +1,19 @@
+/* Minimal CSS - Pure Bootstrap approach */
+
+/* Just essential styling */
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.progress {
+  height: 8px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.font-monospace {
+  font-family: 'Courier New', Courier, monospace;
+}

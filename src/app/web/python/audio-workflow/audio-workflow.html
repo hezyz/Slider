@@ -1,0 +1,125 @@
+<div class="container-fluid py-4" style="padding-top: 6rem !important;">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">🎵 Audio Processing Workflow</h2>
+        @if (hasProject()) {
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-muted">Project: <strong>{{ projectName() }}</strong></span>
+            <button 
+              (click)="resetWorkflow()" 
+              class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              Reset
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (!hasProject()) {
+    <!-- No Project Warning -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-warning text-center" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Please create or open a project first</strong>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Progress Steps -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="steps-container">
+              @for (step of steps; track step.id) {
+                <div class="step" [attr.data-status]="getStepStatus(step.id)">
+                  <div class="step-connector" [class.active]="getStepStatus(step.id) === 'completed'"></div>
+                  <button 
+                    class="step-circle" 
+                    [disabled]="!isStepAccessible(step.id)"
+                    (click)="goToStep(step.id)">
+                    @if (getStepStatus(step.id) === 'completed') {
+                      <i class="bi bi-check-lg"></i>
+                    } @else {
+                      <i [class]="step.icon"></i>
+                    }
+                  </button>
+                  <div class="step-content">
+                    <div class="step-title">{{ step.title }}</div>
+                    <div class="step-description">{{ step.description }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="row">
+      <div class="col-12">
+        @if (currentStep() === 1) {
+          <!-- Step 1: Video Load & Extract -->
+          <app-video-extract-step
+            (videoLoaded)="onVideoLoaded($event)"
+            (audioExtracted)="onAudioExtracted($event)">
+          </app-video-extract-step>
+        }
+
+        @if (currentStep() === 2) {
+          <!-- Step 2: Transcription -->
+          <app-transcription-step
+            [audioPath]="audioPath()"
+            (transcriptionCompleted)="onTranscriptionCompleted($event)">
+          </app-transcription-step>
+        }
+      </div>
+    </div>
+
+    <!-- Workflow Summary -->
+    @if (transcriptionCompleted()) {
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card border-success">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>
+                Workflow Completed Successfully!
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Files Processed:</h6>
+                  <p><strong>Video:</strong> <code>{{ videoPath() }}</code></p>
+                  <p><strong>Audio:</strong> <code>{{ audioPath() }}</code></p>
+                </div>
+                <div class="col-md-6">
+                  <h6>Actions:</h6>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm">
+                      <i class="bi bi-download me-1"></i>
+                      Download Results
+                    </button>
+                    <button 
+                      (click)="resetWorkflow()" 
+                      class="btn btn-outline-secondary btn-sm">
+                      <i class="bi bi-arrow-repeat me-1"></i>
+                      Process Another
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

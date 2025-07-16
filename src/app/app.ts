@@ -14,6 +14,7 @@ import { SegmentModel } from './core/segment.model';
 })
 export class App implements OnInit {
 
+  
   protected title = 'Slide Editor';
   public readonly sharedService = inject(SharedService);
   public readonly segmentService = inject(SegmentService);

@@ -19,8 +19,8 @@ export const routes: Routes = [
         ]
     },
     {
-        path: 'audio-processor',
+        path: 'audio-workflow',
         loadComponent: () =>
-            import('./web/python/audio-processor/audio-processor').then(c => c.AudioProcessor),
+            import('./web/python/audio-workflow/audio-workflow').then(c => c.AudioWorkflow),
     },
 ];

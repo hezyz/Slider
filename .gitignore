@@ -3,6 +3,7 @@
 # custom 
 /projects
 /browser
+/python-env
 
 # Compiled output
 /dist

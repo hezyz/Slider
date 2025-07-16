@@ -2,8 +2,15 @@ const { ipcMain, dialog, app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-//create new project 
+// You need to get a reference to your main window - adjust this based on your main.js setup
+let mainWindow;
 
+// Add this function to set the main window reference
+function setMainWindow(window) {
+  mainWindow = window;
+}
+
+//create new project 
 ipcMain.handle('create-project', async (_event, projectName) => {
   try {
     const projectsBasePath = path.join(__dirname, '..', 'projects');
@@ -19,7 +26,8 @@ ipcMain.handle('create-project', async (_event, projectName) => {
 
     fs.mkdirSync(projectPath);
     fs.mkdirSync(path.join(projectPath, 'slides'));
-    // fs.writeFileSync(path.join(projectPath, 'project.json'), JSON.stringify({}, null, 2), 'utf-8');
+    // Create files folder for videos/audio
+    fs.mkdirSync(path.join(projectPath, 'files'));
 
     // Write initial project.json
     const settingsPath = path.join(projectPath, 'project.json');
@@ -57,7 +65,6 @@ ipcMain.handle('select-json-file', async () => {
 });
 
 // Read json file
-
 ipcMain.handle('read-json-file', async (event, filePath) => {
   try {
     const content = await fs.promises.readFile(filePath, 'utf-8');
@@ -225,13 +232,21 @@ ipcMain.handle('write-json-file', async (_event, projectName, fileName, data) =>
   }
 });
 
+// Get project path
 ipcMain.handle('get-project-path', async (_event, projectName) => {
   try {
-    const basePath = path.join(__dirname, '..', 'projects', projectName);
-
-    return { success: true, path: basePath };
-  } catch (err) {
-    console.error(`❌ Error returning path: ${projectName}:`, err);
-    return { success: false, error: err.message };
+    const projectsBasePath = path.join(__dirname, '..', 'projects');
+    const projectPath = path.join(projectsBasePath, projectName);
+    
+    if (!fs.existsSync(projectPath)) {
+      return { success: false, error: 'Project does not exist' };
+    }
+    
+    return { success: true, path: projectPath };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 });
+
+// Export the setMainWindow function so you can call it from your main.js
+module.exports = { setMainWindow };

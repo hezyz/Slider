@@ -25,15 +25,26 @@ function createWindow() {
     },
   });
 
+  // Set the main window reference for both event files
+  const { setMainWindow: setElectronMainWindow } = require('./electron-events');
+  const { setMainWindow: setPythonMainWindow } = require('./python-events');
+  
+  // Check if setMainWindow functions exist before calling them
+  if (setElectronMainWindow) {
+    setElectronMainWindow(mainWindow);
+  }
+  if (setPythonMainWindow) {
+    setPythonMainWindow(mainWindow);
+  }
+
   if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4200');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.webContents.openDevTools();
-   const indexPath = path.join(__dirname, '../browser/browser/index.html');
+    const indexPath = path.join(__dirname, '../browser/browser/index.html');
     console.log('Loading index.html from:', indexPath);
     mainWindow.loadFile(indexPath);
-
   }
 }
 

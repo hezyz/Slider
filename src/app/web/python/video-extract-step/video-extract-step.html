@@ -1,0 +1,175 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="bi bi-camera-video me-2"></i>
+      Step 1: Load Video & Extract Voice
+    </h5>
+  </div>
+  <div class="card-body">
+    <!-- Dependencies Check -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-gear me-2 text-muted"></i>
+            <span class="fw-semibold">Dependencies:</span>
+            <span class="ms-2" [class]="dependencies().ready ? 'text-success' : 'text-danger'">
+              @if (dependencies().ready) {
+                <i class="bi bi-check-circle me-1"></i>Ready
+              } @else {
+                <i class="bi bi-x-circle me-1"></i>Not Ready
+              }
+            </span>
+          </div>
+          <button 
+            (click)="checkDependencies()" 
+            [disabled]="isCheckingDeps()"
+            class="btn btn-outline-primary btn-sm">
+            @if (isCheckingDeps()) {
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            } @else {
+              <i class="bi bi-arrow-clockwise me-1"></i>
+            }
+            Check
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (!dependencies().ready) {
+      <!-- Dependencies Warning -->
+      <div class="alert alert-warning" role="alert">
+        <h6 class="alert-heading">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Dependencies Required
+        </h6>
+        <p class="mb-2">Please install the following:</p>
+        <ul class="mb-0">
+          @if (!dependencies().python) {
+            <li><strong>Python + Whisper:</strong> <code>pip install openai-whisper</code></li>
+          }
+          @if (!dependencies().ffmpeg) {
+            <li><strong>ffmpeg:</strong> Download from <a href="https://ffmpeg.org" target="_blank">ffmpeg.org</a></li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <!-- Video Selection -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <label class="form-label fw-bold">
+            <i class="bi bi-camera-video me-2"></i>
+            Select Video File
+          </label>
+          @if (!videoPath()) {
+            <div class="d-grid">
+              <button 
+                (click)="selectVideo()" 
+                [disabled]="isImporting()"
+                class="btn btn-outline-primary btn-lg">
+                @if (isImporting()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Importing...
+                } @else {
+                  <i class="bi bi-folder-open me-2"></i>
+                  Choose Video File
+                }
+              </button>
+            </div>
+          } @else {
+            <div class="card bg-light">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <h6 class="card-title mb-1">
+                      <i class="bi bi-camera-video me-2 text-primary"></i>
+                      {{ getFileName(originalVideoPath()) }}
+                    </h6>
+                    <p class="card-text text-muted mb-0">
+                      <small>Saved to: {{ getDisplayPath(videoPath()) }}</small>
+                    </p>
+                  </div>
+                  <button 
+                    (click)="clearVideo()" 
+                    class="btn btn-outline-danger btn-sm ms-2">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Audio Extraction -->
+      @if (videoPath()) {
+        <div class="row mb-4">
+          <div class="col-12">
+            <label class="form-label fw-bold">
+              <i class="bi bi-music-note me-2"></i>
+              Audio Output
+            </label>
+            <div class="input-group mb-3">
+              <span class="input-group-text">
+                <i class="bi bi-music-note"></i>
+              </span>
+              <input 
+                type="text" 
+                class="form-control" 
+                [value]="getDisplayPath(outputPath())" 
+                readonly>
+            </div>
+            
+            <div class="d-grid">
+              <button 
+                (click)="extractAudio()" 
+                [disabled]="!canExtract()"
+                class="btn btn-success btn-lg">
+                @if (isProcessing()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Extracting Audio...
+                } @else {
+                  <i class="bi bi-play-circle me-2"></i>
+                  Extract Audio from Video
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        @if (progress() > 0 && isProcessing()) {
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold">Extraction Progress</span>
+                <span class="text-muted">{{ progress() }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div 
+                  class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                  [style.width.%]="progress()"
+                  role="progressbar">
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    }
+
+    <!-- Status Message -->
+    @if (statusMessage()) {
+      <div class="alert" [class]="'alert-' + statusClass()" role="alert">
+        @if (hasError()) {
+          <i class="bi bi-exclamation-circle me-2"></i>
+        } @else if (statusMessage().includes('successfully')) {
+          <i class="bi bi-check-circle me-2"></i>
+        } @else {
+          <i class="bi bi-info-circle me-2"></i>
+        }
+        {{ statusMessage() }}
+      </div>
+    }
+  </div>
+</div>

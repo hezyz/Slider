@@ -1,0 +1,80 @@
+/* Minimal CSS - Let Bootstrap handle most styling */
+
+/* Fix for sticky navbar - ensure content is not hidden */
+body {
+  padding-top: 0;
+}
+
+/* Main content container offset for sticky navbar */
+.container-fluid {
+  min-height: calc(100vh - 5rem);
+}
+
+/* Progress Steps Only */
+.steps-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.step-circle {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 3px solid #dee2e6;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.step[data-status="active"] .step-circle {
+  border-color: #0d6efd;
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.step[data-status="completed"] .step-circle {
+  border-color: #198754;
+  color: white;
+  background-color: #198754;
+}
+
+.step-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.step[data-status="active"] .step-title {
+  color: #0d6efd;
+}
+
+.step[data-status="completed"] .step-title {
+  color: #198754;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .steps-container {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .step-circle {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
+}
