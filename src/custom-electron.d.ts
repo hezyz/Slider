@@ -15,7 +15,7 @@ declare global {
         projectName: string;
       }) => Promise<{ success: boolean; message?: string; error?: string; targetFilePath?: string }>;
       writeJsonFile: (projectName: string, fileName: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
-      writeCorrectionsJsonFile: (filePath: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
+      writeJsonFileByPath: (filePath: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
       getProjectPath: (projectName: string) => Promise<{ success: boolean; path?: string; error?: string; }>;
       getAppPath: () => Promise<{ success: boolean; path?: string; error?: string; }>;
 

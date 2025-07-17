@@ -99,7 +99,7 @@ export class CorrectionsManager implements OnInit, OnDestroy {
       const appPathResult = await window.electron.getAppPath();
       const correctionFilePath = appPathResult.path + "/corrections.json";
       
-      const result = await window.electron.writeCorrectionsJsonFile(correctionFilePath, this.correctionsObject());
+      const result = await window.electron.writeJsonFileByPath(correctionFilePath, this.correctionsObject());
       
       if (result.success) {
         this.emitStatus('Corrections saved successfully', false);

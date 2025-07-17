@@ -232,7 +232,7 @@ ipcMain.handle('write-json-file', async (_event, projectName, fileName, data) =>
   }
 });
 
-ipcMain.handle('write-corrections-json-file', async (_event, filePath, data) => {
+ipcMain.handle('write-json-file-by-path', async (_event, filePath, data) => {
   try {
 
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');

@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('electron', {
   getProjectImages: async (projectName) => { return await ipcRenderer.invoke('get-project-images', projectName); },
   copyFileAndCreateSegments: (data) => ipcRenderer.invoke('copy-file-and-create-segments', data),
   writeJsonFile: (projectName, fileName, data) => ipcRenderer.invoke('write-json-file', projectName, fileName, data),
-  writeCorrectionsJsonFile: (filePath, data) => ipcRenderer.invoke('write-corrections-json-file', filePath, data),
+  writeJsonFileByPath: (filePath, data) => ipcRenderer.invoke('write-json-file-by-path', filePath, data),
   getProjectPath: (projectName) => ipcRenderer.invoke('get-project-path', projectName),
   getAppPath: () => ipcRenderer.invoke('get-app-path'),
 
