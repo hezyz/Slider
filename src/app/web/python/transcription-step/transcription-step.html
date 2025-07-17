@@ -55,59 +55,6 @@
       </div>
     </div>
 
-    <!-- Text Corrections -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <label for="corrections" class="form-label fw-bold">
-          <i class="bi bi-pencil-square me-2"></i>
-          Text Corrections (Optional)
-        </label>
-        <div class="d-flex gap-2 mb-2">
-          <button 
-            type="button" 
-            (click)="loadDefaultCorrections()" 
-            class="btn btn-outline-primary btn-sm"
-            [disabled]="isTranscribing()">
-            <i class="bi bi-arrow-clockwise me-1"></i>
-            Load Defaults
-          </button>
-          <button 
-            type="button" 
-            (click)="formatCorrections()" 
-            class="btn btn-outline-secondary btn-sm"
-            [disabled]="isTranscribing()">
-            <i class="bi bi-code me-1"></i>
-            Format JSON
-          </button>
-          <button 
-            type="button" 
-            (click)="clearCorrections()" 
-            class="btn btn-outline-danger btn-sm"
-            [disabled]="isTranscribing()">
-            <i class="bi bi-trash me-1"></i>
-            Clear
-          </button>
-        </div>
-        <textarea 
-          id="corrections"
-          class="form-control font-monospace" 
-          rows="6"
-          [(ngModel)]="corrections"
-          [disabled]="isTranscribing()"
-          [class.is-invalid]="!validateCorrections()"
-          placeholder="Enter JSON corrections here">
-        </textarea>
-        @if (!validateCorrections()) {
-          <div class="invalid-feedback">
-            Invalid JSON format. Please check your corrections.
-          </div>
-        }
-        <div class="form-text">
-          JSON format: enter corrections as key-value pairs
-        </div>
-      </div>
-    </div>
-
     <!-- Start Transcription Button -->
     <div class="row mb-4">
       <div class="col-12">
@@ -159,7 +106,19 @@
               <i class="bi bi-check-circle me-2"></i>
               Transcription Complete!
             </h6>
-            <p class="mb-0">{{ transcriptionResult() }}</p>
+            <p class="mb-2">{{ transcriptionResult() }}</p>
+            <button 
+              (click)="applyCorrectionsToFile()" 
+              class="btn btn-outline-primary btn-sm"
+              [disabled]="isApplyingCorrections()">
+              @if (isApplyingCorrections()) {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                Applying...
+              } @else {
+                <i class="bi bi-pencil-square me-1"></i>
+                Apply Current Corrections
+              }
+            </button>
           </div>
         </div>
       </div>

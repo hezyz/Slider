@@ -7,12 +7,26 @@
         @if (hasProject()) {
           <div class="d-flex align-items-center gap-3">
             <span class="text-muted">Project: <strong>{{ projectName() }}</strong></span>
-            <button 
-              (click)="resetWorkflow()" 
-              class="btn btn-outline-secondary btn-sm">
-              <i class="bi bi-arrow-clockwise me-1"></i>
-              Reset
-            </button>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <button class="dropdown-item" (click)="loadJsonFile()">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Load Existing JSON
+                  </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button class="dropdown-item" (click)="resetWorkflow()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Reset Workflow
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         }
       </div>
@@ -79,11 +93,19 @@
             (transcriptionCompleted)="onTranscriptionCompleted($event)">
           </app-transcription-step>
         }
+
+        @if (currentStep() === 3) {
+          <!-- Step 3: Text Corrections -->
+          <app-corrections-step
+            [jsonFilePath]="transcriptionPath()"
+            (correctionsCompleted)="onCorrectionsCompleted($event)">
+          </app-corrections-step>
+        }
       </div>
     </div>
 
     <!-- Workflow Summary -->
-    @if (transcriptionCompleted()) {
+    @if (correctionsCompleted()) {
       <div class="row mt-4">
         <div class="col-12">
           <div class="card border-success">
@@ -95,13 +117,21 @@
             </div>
             <div class="card-body">
               <div class="row">
-                <div class="col-md-6">
-                  <h6>Files Processed:</h6>
-                  <p><strong>Video:</strong> <code>{{ videoPath() }}</code></p>
-                  <p><strong>Audio:</strong> <code>{{ audioPath() }}</code></p>
+                <div class="col-md-4">
+                  <h6>Video:</h6>
+                  <p><code>{{ videoPath() }}</code></p>
                 </div>
-                <div class="col-md-6">
-                  <h6>Actions:</h6>
+                <div class="col-md-4">
+                  <h6>Audio:</h6>
+                  <p><code>{{ audioPath() }}</code></p>
+                </div>
+                <div class="col-md-4">
+                  <h6>Final Text:</h6>
+                  <p><code>{{ finalResult() }}</code></p>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-12">
                   <div class="d-flex gap-2">
                     <button class="btn btn-outline-primary btn-sm">
                       <i class="bi bi-download me-1"></i>

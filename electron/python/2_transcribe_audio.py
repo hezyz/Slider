@@ -262,18 +262,30 @@ def transcribe_audio(audio_path, output_path, corrections_json=None, language="h
         log_progress(90)
         
         # Apply corrections if provided
-        if corrections_json:
+        if corrections_json and corrections_json.strip():
             try:
                 corrections = json.loads(corrections_json)
-                log_status("info", f"Applying {len(corrections)} corrections...")
+                log_status("info", f"Applying {len(corrections)} text corrections...")
                 
+                corrections_applied = 0
                 for seg in output:
+                    original_text = seg["text"]
                     for wrong, correct in corrections.items():
-                        seg["text"] = seg["text"].replace(wrong, correct)
+                        if wrong in seg["text"]:
+                            seg["text"] = seg["text"].replace(wrong, correct)
+                            corrections_applied += 1
+                            log_status("info", f"Applied correction: '{wrong}' → '{correct}'")
+                
+                log_status("info", f"Applied {corrections_applied} text corrections to segments")
                         
-            except json.JSONDecodeError:
-                log_status("error", "Invalid corrections JSON format")
-                sys.exit(1)
+            except json.JSONDecodeError as e:
+                log_status("error", f"Invalid corrections JSON format: {str(e)}")
+                log_status("info", "Continuing without corrections...")
+            except Exception as e:
+                log_status("error", f"Error applying corrections: {str(e)}")
+                log_status("info", "Continuing without corrections...")
+        else:
+            log_status("info", "No text corrections provided")
         
         log_progress(95)
         

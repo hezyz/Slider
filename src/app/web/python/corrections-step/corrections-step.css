@@ -1,0 +1,113 @@
+/* Corrections Step Styles */
+
+.segment-item {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.segment-item:hover {
+  background-color: #e9ecef;
+}
+
+.segment-item p {
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* Highlighted text */
+.segment-item mark {
+  background-color: #fff3cd !important;
+  color: #856404;
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.font-monospace {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+}
+
+/* Button styles */
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  transform: none !important;
+}
+
+/* Badge styles */
+.badge {
+  font-size: 0.75em;
+}
+
+/* Card enhancements */
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Scrollable content */
+.card-body {
+  overflow-x: hidden;
+}
+
+/* Search input in header */
+.card-header input {
+  border: 1px solid #ced4da;
+}
+
+/* Empty state */
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .col-lg-7,
+  .col-lg-5 {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .d-flex.gap-2 {
+    flex-wrap: wrap;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .segment-item {
+    padding: 0.75rem;
+  }
+}

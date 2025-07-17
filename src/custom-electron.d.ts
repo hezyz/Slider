@@ -11,13 +11,18 @@ declare global {
       getProjectImages: (projectName: string) => Promise<{ success: boolean; files?: string[]; error?: string; }>;
       selectFolder: () => Promise<string[]>;
       copyFileAndCreateSegments: (data: {
-        sourcePath: string; 
+        sourcePath: string;
         projectName: string;
       }) => Promise<{ success: boolean; message?: string; error?: string; targetFilePath?: string }>;
       writeJsonFile: (projectName: string, fileName: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
+      writeCorrectionsJsonFile: (filePath: string, data: any) => Promise<{ success: boolean; path?: string; error?: string; }>;
       getProjectPath: (projectName: string) => Promise<{ success: boolean; path?: string; error?: string; }>;
+      getAppPath: () => Promise<{ success: boolean; path?: string; error?: string; }>;
 
       // Video file selection and management methods
+      // File selection methods
+      selectJsonFile: () => Promise<{ canceled: boolean; filePath?: string }>;
+      readJsonFile: (filePath: string) => Promise<{ success: boolean; data?: any; error?: string; }>;
       selectVideoFile: () => Promise<string | null>;
       copyVideoToProject: (data: {
         sourcePath: string;
@@ -31,25 +36,25 @@ declare global {
       }>;
 
       // Python dependency checking
-      checkPythonDependencies: () => Promise<{ 
-        python: boolean; 
-        ffmpeg: boolean; 
-        ready: boolean 
+      checkPythonDependencies: () => Promise<{
+        python: boolean;
+        ffmpeg: boolean;
+        ready: boolean
       }>;
 
       // Audio extraction methods
-      runAudioExtraction: (inputPath: string, outputPath: string) => Promise<{ 
-        success: boolean; 
-        error?: string 
+      runAudioExtraction: (inputPath: string, outputPath: string) => Promise<{
+        success: boolean;
+        error?: string
       }>;
-      onAudioExtractionProgress: (callback: (data: { 
-        type: string; 
-        percent: number 
+      onAudioExtractionProgress: (callback: (data: {
+        type: string;
+        percent: number
       }) => void) => void;
-      onAudioExtractionStatus: (callback: (data: { 
-        type: string; 
-        status: 'info' | 'success' | 'error'; 
-        message: string 
+      onAudioExtractionStatus: (callback: (data: {
+        type: string;
+        status: 'info' | 'success' | 'error';
+        message: string
       }) => void) => void;
       removeAudioExtractionListeners: () => void;
 
@@ -60,18 +65,30 @@ declare global {
         corrections?: string;
         language?: string;
         modelSize?: string;
-      }) => Promise<{ 
-        success: boolean; 
-        error?: string 
+      }) => Promise<{
+        success: boolean;
+        error?: string
       }>;
-      onTranscriptionProgress: (callback: (data: { 
-        type: string; 
-        percent: number 
+      applyCorrections: (params: {
+        jsonFilePath: string;
+        corrections: string;
+      }) => Promise<{
+        success: boolean;
+        error?: string
+      }>;
+      onTranscriptionProgress: (callback: (data: {
+        type: string;
+        percent: number
       }) => void) => void;
-      onTranscriptionStatus: (callback: (data: { 
-        type: string; 
-        status: 'info' | 'success' | 'error'; 
-        message: string 
+      onTranscriptionStatus: (callback: (data: {
+        type: string;
+        status: 'info' | 'success' | 'error';
+        message: string
+      }) => void) => void;
+      onCorrectionsStatus: (callback: (data: {
+        type: string;
+        status: 'info' | 'success' | 'error';
+        message: string
       }) => void) => void;
       removeTranscriptionListeners: () => void;
 

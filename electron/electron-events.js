@@ -232,6 +232,18 @@ ipcMain.handle('write-json-file', async (_event, projectName, fileName, data) =>
   }
 });
 
+ipcMain.handle('write-corrections-json-file', async (_event, filePath, data) => {
+  try {
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+
+    return { success: true, path: filePath };
+  } catch (err) {
+    console.error(`❌ Error writing ${fileName}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
 // Get project path
 ipcMain.handle('get-project-path', async (_event, projectName) => {
   try {
@@ -243,6 +255,21 @@ ipcMain.handle('get-project-path', async (_event, projectName) => {
     }
     
     return { success: true, path: projectPath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get app path
+ipcMain.handle('get-app-path', async (_event) => {
+  try {
+    const projectsPath = path.join(__dirname, '..', 'projects');
+    
+    if (!fs.existsSync(projectsPath)) {
+      return { success: false, error: 'Projects directory does not exist' };
+    }
+
+    return { success: true, path: projectsPath };
   } catch (error) {
     return { success: false, error: error.message };
   }

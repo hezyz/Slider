@@ -10,7 +10,9 @@ contextBridge.exposeInMainWorld('electron', {
   getProjectImages: async (projectName) => { return await ipcRenderer.invoke('get-project-images', projectName); },
   copyFileAndCreateSegments: (data) => ipcRenderer.invoke('copy-file-and-create-segments', data),
   writeJsonFile: (projectName, fileName, data) => ipcRenderer.invoke('write-json-file', projectName, fileName, data),
+  writeCorrectionsJsonFile: (filePath, data) => ipcRenderer.invoke('write-corrections-json-file', filePath, data),
   getProjectPath: (projectName) => ipcRenderer.invoke('get-project-path', projectName),
+  getAppPath: () => ipcRenderer.invoke('get-app-path'),
 
   // Python/Video processing methods
   selectVideoFile: () => ipcRenderer.invoke('select-video-file'),
@@ -32,15 +34,20 @@ contextBridge.exposeInMainWorld('electron', {
 
   // Transcription methods
   runTranscription: (params) => ipcRenderer.invoke('run-transcription', params),
+  applyCorrections: (params) => ipcRenderer.invoke('apply-corrections', params),
   onTranscriptionProgress: (callback) => {
     ipcRenderer.on('transcription-progress', (event, data) => callback(data));
   },
   onTranscriptionStatus: (callback) => {
     ipcRenderer.on('transcription-status', (event, data) => callback(data));
   },
+  onCorrectionsStatus: (callback) => {
+    ipcRenderer.on('corrections-status', (event, data) => callback(data));
+  },
   removeTranscriptionListeners: () => {
     ipcRenderer.removeAllListeners('transcription-progress');
     ipcRenderer.removeAllListeners('transcription-status');
+    ipcRenderer.removeAllListeners('corrections-status');
   },
 
   // Python environment setup methods

@@ -1,0 +1,123 @@
+/* Custom Bootstrap overrides for corrections manager */
+
+.list-group-item {
+  border-left: none;
+  border-right: none;
+  padding: 1rem;
+}
+
+.list-group-item:first-child {
+  border-top: none;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+.list-group-item:hover {
+  background-color: var(--bs-gray-50);
+}
+
+/* Custom badge styling for wrong/correct text */
+.badge {
+  font-family: var(--bs-font-monospace);
+  font-size: 0.85em;
+  font-weight: normal;
+}
+
+/* Enhanced scrollbar for list */
+.list-group-flush {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bs-gray-400) var(--bs-gray-100);
+}
+
+.list-group-flush::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list-group-flush::-webkit-scrollbar-track {
+  background: var(--bs-gray-100);
+  border-radius: 4px;
+}
+
+.list-group-flush::-webkit-scrollbar-thumb {
+  background: var(--bs-gray-400);
+  border-radius: 4px;
+}
+
+.list-group-flush::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-gray-600);
+}
+
+/* Button group improvements */
+.btn-group-sm .btn {
+  font-size: 0.8rem;
+}
+
+/* Form improvements */
+.form-control-sm {
+  font-size: 0.875rem;
+}
+
+/* Alert improvements */
+.alert {
+  border-radius: var(--bs-border-radius);
+}
+
+.alert-light {
+  background-color: var(--bs-gray-50);
+  border-color: var(--bs-gray-200);
+}
+
+/* Animation for smooth interactions */
+.list-group-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.btn {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .list-group-item .row {
+    gap: 0.5rem;
+  }
+  
+  .list-group-item .col-md-1 {
+    display: none;
+  }
+  
+  .list-group-item .btn-group {
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .badge {
+    display: block;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+}
+
+/* Loading state */
+.spinner-border-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Icon styling */
+.bi {
+  font-size: 1em;
+}
+
+/* Empty state icon */
+.text-center i[style*="font-size: 3rem"] {
+  opacity: 0.5;
+}
+
+/* Input group styling */
+.input-group-text {
+  background-color: var(--bs-gray-100);
+  border-color: var(--bs-border-color);
+}
