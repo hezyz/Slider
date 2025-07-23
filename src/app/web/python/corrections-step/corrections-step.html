@@ -6,32 +6,6 @@
         </h5>
     </div>
     <div class="card-body">
-        <!-- File Info -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="alert alert-info d-flex align-items-center justify-content-between" role="alert">
-                    <div>
-                        <i class="bi bi-file-earmark-text me-2"></i>
-                        <strong>Transcription File:</strong>
-                        <code>{{ getDisplayPath(jsonFilePath()) }}</code>
-                        @if (hasSegments()) {
-                        <span class="ms-2 badge bg-primary">{{ totalSegments() }} segments</span>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if (isLoading()) {
-        <!-- Loading State -->
-        <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading transcription file...</p>
-        </div>
-        } @else if (hasSegments()) {
-
         <!-- Simple Correction Rules Box -->
         <div class="card border-secondary mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
@@ -53,191 +27,117 @@
                         <i class="bi bi-pencil me-1"></i>Edit
                     </button>
                     @if (correctionWords().length > 0) {
-                    <button type="button" class="btn btn-success btn-sm" (click)="confirmApplyAll()"
-                        [disabled]="isApplyingCorrections()">
-                        @if (isApplyingCorrections()) {
-                        <span class="spinner-border spinner-border-sm me-1"></span>Applying...
-                        } @else {
-                        <i class="bi bi-check-circle me-1"></i>Apply All
-                        }
+                    <button type="button" class="btn btn-success btn-sm" (click)="confirmApplyAll()">
+                        Apply All
                     </button>
                     }
                 </div>
             </div>
-        </div>
 
-        <!-- Text Preview (Now Full Width) -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
-                            <i class="bi bi-file-text me-2"></i>
-                            Transcribed Text
-                        </h6>
-                        <div class="input-group" style="width: 250px;">
-                            <span class="input-group-text">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm"
-                                (input)="filterSegments()" placeholder="Search text...">
+            <!-- Text Preview (Now Full Width) -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="bi bi-file-text me-2"></i>
+                                Transcribed Text
+                            </h6>
+                            <div class="input-group" style="width: 250px;">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm"
+                                    (input)="filterSegments()" placeholder="Search text...">
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                        @if (filteredSegments().length === 0) {
-                        <div class="text-center py-4">
-                            <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mt-2">No segments match your search.</p>
-                        </div>
-                        } @else {
-                        <div class="list-group list-group-flush">
-                            @for (segment of filteredSegments(); track segment.id; let i = $index) {
-                            <div class="list-group-item border-0 px-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        @if (isSegmentBeingEdited(segment.id!)) {
-                                        <!-- Edit Mode -->
-                                        <div class="mb-3">
-                                            <textarea class="form-control" rows="3" [value]="editingText()"
-                                                (input)="onEditTextChange($any($event.target).value)"
-                                                placeholder="Edit segment text..."
-                                                style="resize: vertical; min-height: 80px;"></textarea>
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-sm btn-success me-2"
-                                                    (click)="saveSegmentEdit()" [disabled]="isSavingSegment()">
-                                                    @if (isSavingSegment()) {
-                                                    <span class="spinner-border spinner-border-sm me-1"
-                                                        role="status"></span>
-                                                    Saving...
-                                                    } @else {
-                                                    <i class="bi bi-check-lg me-1"></i>
-                                                    Save
-                                                    }
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-secondary"
-                                                    (click)="cancelEditSegment()" [disabled]="isSavingSegment()">
-                                                    <i class="bi bi-x-lg me-1"></i>
-                                                    Cancel
-                                                </button>
+                        <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                            @if (filteredSegments().length === 0) {
+                            <div class="text-center py-4">
+                                <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">No segments match your search.</p>
+                            </div>
+                            } @else {
+                            <div class="list-group list-group-flush">
+                                @for (segment of filteredSegments(); track segment.id; let i = $index) {
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            @if (isSegmentBeingEdited(segment.id!)) {
+                                            <!-- Edit Mode -->
+                                            <div class="mb-3">
+                                                <textarea class="form-control" rows="3" [value]="editingText()"
+                                                    (input)="onEditTextChange($any($event.target).value)"
+                                                    placeholder="Edit segment text..."
+                                                    style="resize: vertical; min-height: 80px;"></textarea>
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-sm btn-success me-2"
+                                                        (click)="saveSegmentEdit()" [disabled]="isSavingSegment()">
+                                                        @if (isSavingSegment()) {
+                                                        <span class="spinner-border spinner-border-sm me-1"
+                                                            role="status"></span>
+                                                        Saving...
+                                                        } @else {
+                                                        <i class="bi bi-check-lg me-1"></i>
+                                                        Save
+                                                        }
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-secondary"
+                                                        (click)="cancelEditSegment()" [disabled]="isSavingSegment()">
+                                                        <i class="bi bi-x-lg me-1"></i>
+                                                        Cancel
+                                                    </button>
+                                                </div>
                                             </div>
+                                            } @else {
+                                            <!-- Display Mode -->
+                                            <p class="mb-1" [innerHTML]="highlightText(segment.text)"></p>
+                                            }
+                                            @if (segment.start !== undefined) {
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ segment.start }}s - {{ segment.end }}s
+                                            </small>
+                                            }
                                         </div>
-                                        } @else {
-                                        <!-- Display Mode -->
-                                        <p class="mb-1" [innerHTML]="highlightText(segment.text)"></p>
-                                        }
-                                        @if (segment.start !== undefined) {
-                                        <small class="text-muted">
-                                            <i class="bi bi-clock me-1"></i>
-                                            {{ segment.start }}s - {{ segment.end }}s
-                                        </small>
-                                        }
-                                    </div>
-                                    <div class="ms-2 d-flex align-items-center">
-                                        <span class="badge bg-light text-dark me-2">#{{ i + 1 }}</span>
-                                        @if (!isSegmentBeingEdited(segment.id!)) {
-                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                            (click)="startEditSegment(i)" [disabled]="isEditing() || isSavingSegment()"
-                                            title="Edit segment">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        }
+                                        <div class="ms-2 d-flex align-items-center">
+                                            <span class="badge bg-light text-dark me-2">#{{ i + 1 }}</span>
+                                            @if (!isSegmentBeingEdited(segment.id!)) {
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                (click)="startEditSegment(i)"
+                                                [disabled]="isEditing() || isSavingSegment()" title="Edit segment">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
+                                }
                             </div>
                             }
                         </div>
-                        }
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Apply Corrections Button -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-grid d-md-flex gap-2">
-                    @if (correctionWords().length === 0) {
-                    <div class="alert alert-warning d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>No correction rules defined.</strong> Add some rules to automatically correct common
-                            transcription errors.
-                        </div>
-                        <button type="button" class="btn btn-warning" (click)="openCorrectionsModal()">
-                            <i class="bi bi-plus-circle me-1"></i>
-                            Add Rules Now
-                        </button>
-                    </div>
-                    }
-                </div>
+            <!-- Status Message -->
+            @if (statusMessage()) {
+            @if (hasError()) {
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                {{ statusMessage() }}
             </div>
-        </div>
-        } @else {
-        <!-- No Data State -->
-        <div class="text-center py-5">
-            <i class="bi bi-file-earmark-x text-muted" style="font-size: 4rem;"></i>
-            <h5 class="text-muted mt-3">No transcription data available</h5>
-            <p class="text-muted">Please complete transcription first or load an existing JSON file</p>
-        </div>
-        }
-
-        <!-- Status Message -->
-        @if (statusMessage()) {
-        <div class="row mb-4">
-            <div class="col-12">
-                @if (hasError()) {
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>
-                    {{ statusMessage() }}
-                </div>
-                } @else if (statusMessage().includes('successfully')) {
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>
-                    {{ statusMessage() }}
-                </div>
-                } @else {
-                <div class="alert alert-primary" role="alert">
-                    <i class="bi bi-info-circle me-2"></i>
-                    {{ statusMessage() }}
-                </div>
-                }
+            } @else if (statusMessage().includes('successfully')) {
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                {{ statusMessage() }}
             </div>
-        </div>
-        }
-
-        <!-- Help Card -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card bg-light border-primary">
-                    <div class="card-body">
-                        <h6 class="card-title text-primary">
-                            <i class="bi bi-lightbulb me-2"></i>
-                            Correction Tips
-                        </h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul class="mb-0 small">
-                                    <li><strong>Search:</strong> Use the search box to find specific words or phrases
-                                    </li>
-                                    <li><strong>Edit:</strong> Click the pencil icon to manually edit any segment</li>
-                                    <li><strong>Auto-Save:</strong> Segments are saved immediately to the file</li>
-                                    <li><strong>Case Sensitive:</strong> Corrections match exact case</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="mb-0 small">
-                                    <li><strong>Word Boundaries:</strong> Only complete words are matched</li>
-                                    <li><strong>Multiple Runs:</strong> You can apply corrections multiple times</li>
-                                    <li><strong>Highlighting:</strong> Words that will be corrected are highlighted in
-                                        yellow</li>
-                                    <li><strong>Correction Rules:</strong> Click "Manage Corrections" to add/edit rules
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            } @else {
+            <div class="alert alert-primary" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                {{ statusMessage() }}
             </div>
+            }
+            }
         </div>
     </div>
 </div>
