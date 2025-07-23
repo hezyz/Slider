@@ -15,7 +15,13 @@
                 <li>
                   <button class="dropdown-item" (click)="loadJsonFile()">
                     <i class="bi bi-file-earmark-text me-2"></i>
-                    Load Existing JSON
+                    Load Transcription JSON
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" (click)="loadCorrectedJsonFile()">
+                    <i class="bi bi-file-earmark-check me-2"></i>
+                    Load Corrected JSON
                   </button>
                 </li>
                 <li><hr class="dropdown-divider"></li>
@@ -101,11 +107,19 @@
             (correctionsCompleted)="onCorrectionsCompleted($event)">
           </app-corrections-step>
         }
+
+        @if (currentStep() === 4) {
+          <!-- Step 4: Translation -->
+          <app-translation-step
+            [correctedTextPath]="correctedTextPath()"
+            (translationCompleted)="onTranslationCompleted($event)">
+          </app-translation-step>
+        }
       </div>
     </div>
 
     <!-- Workflow Summary -->
-    @if (correctionsCompleted()) {
+    @if (translationCompleted()) {
       <div class="row mt-4">
         <div class="col-12">
           <div class="card border-success">
@@ -117,17 +131,21 @@
             </div>
             <div class="card-body">
               <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <h6>Video:</h6>
                   <p><code>{{ videoPath() }}</code></p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <h6>Audio:</h6>
                   <p><code>{{ audioPath() }}</code></p>
                 </div>
-                <div class="col-md-4">
-                  <h6>Final Text:</h6>
-                  <p><code>{{ finalResult() }}</code></p>
+                <div class="col-md-3">
+                  <h6>Corrected Text:</h6>
+                  <p><code>{{ correctedTextPath() }}</code></p>
+                </div>
+                <div class="col-md-3">
+                  <h6>Translated Text:</h6>
+                  <p><code>{{ translatedTextPath() }}</code></p>
                 </div>
               </div>
               <div class="row mt-3">

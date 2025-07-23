@@ -65,6 +65,7 @@ export class App implements OnInit {
       console.error('❌ Failed to get project path:', err);
     }
   }
+  
   async openProject() {
     const result = await window.electron.selectJsonFile();
 

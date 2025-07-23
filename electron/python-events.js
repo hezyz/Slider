@@ -796,5 +796,202 @@ ipcMain.handle('debug-python-environment', async () => {
   }
 });
 
+// NEW: Translation handler - ADD THIS TO YOUR EXISTING FILE
+ipcMain.handle('run-translation', async (_event, params) => {
+  try {
+    const { 
+      inputPath, 
+      outputPath, 
+      apiKey, 
+      systemPrompt, 
+      sourceLanguage = 'he', 
+      targetLanguage = 'en', 
+      model = 'gpt-4' 
+    } = params;
+    
+    // Initialize paths
+    let absoluteInputPath = inputPath;
+    let absoluteOutputPath = outputPath;
+    
+    // Handle relative project paths
+    if (inputPath.startsWith('projects/')) {
+      absoluteInputPath = path.join(__dirname, '..', inputPath);
+    }
+    
+    if (outputPath.startsWith('projects/')) {
+      absoluteOutputPath = path.join(__dirname, '..', outputPath);
+      
+      // Ensure output directory exists
+      const outputDir = path.dirname(absoluteOutputPath);
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+    }
+    
+    // Verify input file exists
+    if (!fs.existsSync(absoluteInputPath)) {
+      return { success: false, error: `Input file does not exist: ${absoluteInputPath}` };
+    }
+    
+    // Validate required parameters
+    if (!apiKey || !apiKey.trim()) {
+      return { success: false, error: 'API key is required for translation' };
+    }
+    
+    if (!systemPrompt || !systemPrompt.trim()) {
+      return { success: false, error: 'System prompt is required for translation' };
+    }
+    
+    // Get the correct Python command and script path
+    const pythonCommand = getPythonCommand();
+    const pythonScript = path.join(__dirname, 'python', '3_translate_text.py');
+    
+    console.log('Translation details:');
+    console.log('Python command:', pythonCommand);
+    console.log('Script path:', pythonScript);
+    console.log('Input path:', absoluteInputPath);
+    console.log('Output path:', absoluteOutputPath);
+    console.log('Source language:', sourceLanguage);
+    console.log('Target language:', targetLanguage);
+    console.log('Model:', model);
+    console.log('API key length:', apiKey.length);
+    
+    return new Promise((resolve) => {
+      const args = [
+        pythonScript,
+        absoluteInputPath,
+        absoluteOutputPath,
+        apiKey,
+        systemPrompt,
+        sourceLanguage,
+        targetLanguage,
+        model
+      ];
+      
+      console.log('Full translation command:', pythonCommand, args.slice(0, 3).join(' ') + ' [API_KEY] [PROMPT] ...');
+      
+      // Spawn process with timeout
+      const pythonProcess = spawn(pythonCommand, args, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          PYTHONUNBUFFERED: '1'
+        }
+      });
+      
+      let hasError = false;
+      let errorMessage = '';
+      
+      // Set up timeout (20 minutes for translation)
+      const timeout = setTimeout(() => {
+        console.log('Translation timeout reached, killing process...');
+        pythonProcess.kill('SIGTERM');
+        
+        setTimeout(() => {
+          if (!pythonProcess.killed) {
+            console.log('Force killing translation process...');
+            pythonProcess.kill('SIGKILL');
+          }
+        }, 5000);
+        
+        resolve({ 
+          success: false, 
+          error: 'Translation timed out. This may happen with very long texts or API rate limits.' 
+        });
+      }, 20 * 60 * 1000); // 20 minutes
+      
+      pythonProcess.stdout.on('data', (data) => {
+        const output = data.toString().trim();
+        
+        // Split by lines in case multiple JSON objects are on same line
+        const lines = output.split('\n');
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) continue;
+          
+          console.log('Translation output:', trimmedLine);
+          
+          // Parse structured output from Python script
+          if (trimmedLine.startsWith('STATUS:')) {
+            try {
+              const statusData = JSON.parse(trimmedLine.substring(7));
+              if (mainWindow && mainWindow.webContents) {
+                mainWindow.webContents.send('translation-status', statusData);
+              }
+              
+              if (statusData.status === 'error') {
+                hasError = true;
+                errorMessage = statusData.message;
+              }
+            } catch (e) {
+              console.error('Error parsing translation status data:', e);
+              console.error('Problematic line:', trimmedLine);
+            }
+          } else {
+            // Handle regular log messages
+            console.log('Translation log:', trimmedLine);
+          }
+        }
+      });
+      
+      pythonProcess.stderr.on('data', (data) => {
+        const error = data.toString().trim();
+        console.error('Translation error:', error);
+        
+        // Check for common API errors
+        if (error.includes('401') || error.includes('Unauthorized')) {
+          hasError = true;
+          errorMessage = 'Invalid API key. Please check your OpenAI API key.';
+        } else if (error.includes('429') || error.includes('rate_limit')) {
+          hasError = true;
+          errorMessage = 'API rate limit exceeded. Please wait and try again.';
+        } else if (error.includes('insufficient_quota')) {
+          hasError = true;
+          errorMessage = 'Insufficient API quota. Please check your OpenAI account billing.';
+        } else {
+          hasError = true;
+          errorMessage = error;
+        }
+        
+        if (mainWindow && mainWindow.webContents) {
+          mainWindow.webContents.send('translation-status', {
+            type: 'status',
+            status: 'error',
+            message: errorMessage
+          });
+        }
+      });
+      
+      pythonProcess.on('close', (code) => {
+        clearTimeout(timeout);
+        console.log('Translation process closed with code:', code);
+        
+        if (code === 0 && !hasError) {
+          resolve({ success: true });
+        } else {
+          resolve({ 
+            success: false, 
+            error: errorMessage || `Translation process exited with code ${code}` 
+          });
+        }
+      });
+      
+      pythonProcess.on('error', (error) => {
+        clearTimeout(timeout);
+        console.error('Failed to start translation process:', error);
+        resolve({ 
+          success: false, 
+          error: `Failed to start translation process: ${error.message}` 
+        });
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error in translation:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Export the setMainWindow function so you can call it from your main.js
 module.exports = { setMainWindow };

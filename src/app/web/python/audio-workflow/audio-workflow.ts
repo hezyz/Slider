@@ -4,6 +4,7 @@ import { SharedService } from '../../../core/shared.service';
 import { VideoExtractStep } from '../video-extract-step/video-extract-step';
 import { TranscriptionStep } from '../transcription-step/transcription-step';
 import { CorrectionsStep } from '../corrections-step/corrections-step';
+import { TranslationStep } from '../translation-step/translation-step';
 
 @Component({
   selector: 'app-audio-workflow',
@@ -11,7 +12,8 @@ import { CorrectionsStep } from '../corrections-step/corrections-step';
     CommonModule,
     VideoExtractStep,
     TranscriptionStep,
-    CorrectionsStep
+    CorrectionsStep,
+    TranslationStep
   ],
   templateUrl: './audio-workflow.html',
   styleUrl: './audio-workflow.css'
@@ -25,11 +27,14 @@ export class AudioWorkflow {
   audioExtracted = signal<boolean>(false);
   transcriptionCompleted = signal<boolean>(false);
   correctionsCompleted = signal<boolean>(false);
+  translationCompleted = signal<boolean>(false);
   
   // Data signals
   videoPath = signal<string>('');
   audioPath = signal<string>('');
   transcriptionPath = signal<string>('');
+  correctedTextPath = signal<string>('');
+  translatedTextPath = signal<string>('');
   finalResult = signal<string>('');
 
   // Computed properties
@@ -55,6 +60,12 @@ export class AudioWorkflow {
       title: 'Text Corrections',
       description: 'Review and correct text',
       icon: 'bi-pencil-square'
+    },
+    {
+      id: 4,
+      title: 'Translation',
+      description: 'Translate text to target language',
+      icon: 'bi-translate'
     }
   ];
 
@@ -84,8 +95,18 @@ export class AudioWorkflow {
   // Step 3 event handlers
   onCorrectionsCompleted(data: { result: string; success: boolean }) {
     if (data.success) {
-      this.finalResult.set(data.result);
+      this.correctedTextPath.set(data.result);
       this.correctionsCompleted.set(true);
+      this.currentStep.set(4);
+    }
+  }
+
+  // Step 4 event handlers (NEW)
+  onTranslationCompleted(data: { result: string; success: boolean }) {
+    if (data.success) {
+      this.translatedTextPath.set(data.result);
+      this.translationCompleted.set(true);
+      this.finalResult.set(data.result);
     }
   }
 
@@ -97,10 +118,12 @@ export class AudioWorkflow {
       this.currentStep.set(2);
     } else if (stepNumber === 3 && this.transcriptionCompleted()) {
       this.currentStep.set(3);
+    } else if (stepNumber === 4 && this.correctionsCompleted()) {
+      this.currentStep.set(4);
     }
   }
 
-  // Load existing JSON file and jump to step 3
+  // Load existing JSON file and jump to step 3 (corrections)
   async loadJsonFile() {
     try {
       const result = await window.electron.selectJsonFile();
@@ -111,6 +134,21 @@ export class AudioWorkflow {
       }
     } catch (error) {
       console.error('Failed to load JSON file:', error);
+    }
+  }
+
+  // Load existing corrected JSON file and jump to step 4 (translation)
+  async loadCorrectedJsonFile() {
+    try {
+      const result = await window.electron.selectJsonFile();
+      if (result && !result.canceled && result.filePath) {
+        this.correctedTextPath.set(result.filePath);
+        this.transcriptionCompleted.set(true);
+        this.correctionsCompleted.set(true);
+        this.currentStep.set(4);
+      }
+    } catch (error) {
+      console.error('Failed to load corrected JSON file:', error);
     }
   }
 
@@ -134,6 +172,12 @@ export class AudioWorkflow {
       return 'disabled';
     }
     
+    if (stepId === 4) {
+      if (this.translationCompleted()) return 'completed';
+      if (this.currentStep() === 4 && this.correctionsCompleted()) return 'active';
+      return 'disabled';
+    }
+    
     return 'disabled';
   }
 
@@ -141,6 +185,7 @@ export class AudioWorkflow {
     if (stepId === 1) return true;
     if (stepId === 2) return this.audioExtracted();
     if (stepId === 3) return this.transcriptionCompleted();
+    if (stepId === 4) return this.correctionsCompleted();
     return false;
   }
 
@@ -151,9 +196,12 @@ export class AudioWorkflow {
     this.audioExtracted.set(false);
     this.transcriptionCompleted.set(false);
     this.correctionsCompleted.set(false);
+    this.translationCompleted.set(false);
     this.videoPath.set('');
     this.audioPath.set('');
     this.transcriptionPath.set('');
+    this.correctedTextPath.set('');
+    this.translatedTextPath.set('');
     this.finalResult.set('');
   }
 }

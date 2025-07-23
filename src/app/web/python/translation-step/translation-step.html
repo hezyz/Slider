@@ -1,0 +1,248 @@
+<div class="card">
+  <div class="card-header">
+    <h4 class="mb-0">
+      <i class="bi bi-translate me-2"></i>
+      Step 4: Translation
+    </h4>
+  </div>
+  <div class="card-body">
+    @if (!hasInputFile()) {
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No corrected text file available. Please complete the previous steps first.
+      </div>
+    } @else {
+      
+      <!-- Input File Info -->
+      <div class="alert alert-info">
+        <h6><i class="bi bi-info-circle me-2"></i>Input File</h6>
+        <p class="mb-1">
+          <strong>File:</strong> <code>{{ getFileName(correctedTextPath) }}</code>
+        </p>
+        <p class="mb-0">
+          <strong>Path:</strong> <code>{{ getDisplayPath(correctedTextPath) }}</code>
+        </p>
+      </div>
+
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <span>Loading corrected text file...</span>
+        </div>
+      }
+
+      <!-- Error Display -->
+      @if (hasError()) {
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          {{ statusMessage() }}
+        </div>
+      }
+
+      <!-- Status Message -->
+      @if (statusMessage() && !hasError() && !isLoading()) {
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle me-2"></i>
+          {{ statusMessage() }}
+        </div>
+      }
+
+      <!-- Segments Info -->
+      @if (hasSegments()) {
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title">
+                  <i class="bi bi-file-text me-2"></i>
+                  Text Segments Loaded
+                </h6>
+                <p class="card-text">
+                  <strong>Total segments:</strong> {{ totalSegments() }} text segments ready for translation
+                </p>
+                
+                <!-- Sample text preview -->
+                @if (segments().length > 0) {
+                  <div class="mt-3">
+                    <h6>Sample text preview:</h6>
+                    <div class="border rounded p-3 bg-white">
+                      <small class="text-muted">First segment:</small>
+                      <p class="mb-0 mt-1">{{ segments()[0].text | slice:0:200 }}{{ segments()[0].text.length > 200 ? '...' : '' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Translation Settings -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Source Language</label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="sourceLanguage"
+              [disabled]="isLoading() || isProcessing()">
+              <option value="he">Hebrew</option>
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+              <option value="ru">Russian</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Target Language</label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="targetLanguage"
+              [disabled]="isLoading() || isProcessing()">
+              <option value="en">English</option>
+              <option value="he">Hebrew</option>
+              <option value="ar">Arabic</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+              <option value="ru">Russian</option>
+              <option value="zh">Chinese</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- API Configuration -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Translation Service</label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="translationService"
+              [disabled]="isLoading() || isProcessing()">
+              <option value="openai">OpenAI GPT</option>
+              <option value="google" disabled>Google Translate (Coming Soon)</option>
+              <option value="azure" disabled>Azure Translator (Coming Soon)</option>
+              <option value="deepl" disabled>DeepL (Coming Soon)</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Model</label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="model"
+              [disabled]="isLoading() || isProcessing() || translationService() !== 'openai'">
+              <option value="gpt-4">GPT-4 (Recommended)</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- API Key -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <label class="form-label">OpenAI API Key</label>
+            <div class="input-group">
+              <input 
+                type="password" 
+                class="form-control" 
+                [(ngModel)]="apiKey"
+                [disabled]="isLoading() || isProcessing()"
+                placeholder="sk-proj-..."
+                [type]="apiKeyVisible ? 'text' : 'password'">
+              <button 
+                class="btn btn-outline-secondary" 
+                type="button"
+                (click)="apiKeyVisible = !apiKeyVisible">
+                <i [class]="apiKeyVisible ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </div>
+            <small class="text-muted">Your API key is not stored and only used for this translation session.</small>
+          </div>
+        </div>
+
+        <!-- System Prompt -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <label class="form-label">System Prompt (Translation Instructions)</label>
+            <textarea 
+              class="form-control" 
+              rows="3"
+              [(ngModel)]="systemPrompt"
+              [disabled]="isLoading() || isProcessing()"
+              placeholder="Enter custom instructions for the translator..."></textarea>
+            <small class="text-muted">Customize how the AI should translate your content (e.g., formal tone, specific terminology, etc.)</small>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        @if (isProcessing()) {
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span>Translation Progress</span>
+              <span>{{ progress() }}%</span>
+            </div>
+            <div class="progress">
+              <div 
+                class="progress-bar progress-bar-striped progress-bar-animated" 
+                [style.width.%]="progress()">
+              </div>
+            </div>
+            <small class="text-muted mt-1 d-block">{{ statusMessage() }}</small>
+          </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+          <button 
+            class="btn btn-primary"
+            [disabled]="isLoading() || isProcessing() || !apiKey().trim()"
+            (click)="startTranslation()">
+            @if (isProcessing()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Translating...
+            } @else {
+              <i class="bi bi-translate me-2"></i>
+              Start Translation
+            }
+          </button>
+          
+          <button 
+            class="btn btn-outline-secondary"
+            [disabled]="isLoading() || isProcessing()"
+            (click)="loadJsonFile()">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Reload File
+          </button>
+
+          @if (translationPath()) {
+            <button 
+              class="btn btn-outline-success"
+              [disabled]="isProcessing()"
+              (click)="openTranslationFile()">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              View Translation
+            </button>
+          }
+        </div>
+      }
+
+      <!-- No segments loaded -->
+      @if (!hasSegments() && !isLoading() && !hasError()) {
+        <div class="alert alert-secondary text-center">
+          <i class="bi bi-file-earmark-text me-2"></i>
+          <strong>No text segments found</strong>
+          <p class="mb-0 mt-2 text-muted">
+            The corrected text file appears to be empty or in an unexpected format.
+          </p>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,26 @@
+.progress {
+      height: 8px;
+    }
+    
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .alert {
+      border-left: 4px solid;
+    }
+    
+    .alert-info {
+      border-left-color: #0dcaf0;
+    }
+    
+    .alert-warning {
+      border-left-color: #ffc107;
+    }
+    
+    .alert-danger {
+      border-left-color: #dc3545;
+    }

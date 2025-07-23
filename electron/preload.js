@@ -50,6 +50,15 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeAllListeners('corrections-status');
   },
 
+  // NEW: Translation methods
+  runTranslation: (params) => ipcRenderer.invoke('run-translation', params),
+  onTranslationStatus: (callback) => {
+    ipcRenderer.on('translation-status', (event, data) => callback(data));
+  },
+  removeTranslationListeners: () => {
+    ipcRenderer.removeAllListeners('translation-status');
+  },
+
   // Python environment setup methods
   setupLocalPython: () => ipcRenderer.invoke('setup-local-python'),
   testLocalPython: () => ipcRenderer.invoke('test-local-python'),
@@ -61,5 +70,6 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeAllListeners('audio-extraction-status');
     ipcRenderer.removeAllListeners('transcription-progress');
     ipcRenderer.removeAllListeners('transcription-status');
+    ipcRenderer.removeAllListeners('translation-status');
   }
 });

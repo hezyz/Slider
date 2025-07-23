@@ -20,9 +20,6 @@ declare global {
       getAppPath: () => Promise<{ success: boolean; path?: string; error?: string; }>;
 
       // Video file selection and management methods
-      // File selection methods
-      selectJsonFile: () => Promise<{ canceled: boolean; filePath?: string }>;
-      readJsonFile: (filePath: string) => Promise<{ success: boolean; data?: any; error?: string; }>;
       selectVideoFile: () => Promise<string | null>;
       copyVideoToProject: (data: {
         sourcePath: string;
@@ -69,56 +66,68 @@ declare global {
         success: boolean;
         error?: string
       }>;
+      onTranscriptionProgress: (callback: (data: {
+        type: string;
+        percent: number;
+        message?: string;
+      }) => void) => void;
+      onTranscriptionStatus: (callback: (data: {
+        type: string;
+        status: 'info' | 'success' | 'error' | 'warning';
+        message: string
+      }) => void) => void;
+      removeTranscriptionListeners: () => void;
+
+      // Corrections methods
       applyCorrections: (params: {
         jsonFilePath: string;
-        corrections: string;
+        corrections: { [key: string]: string };
+        outputPath?: string;
       }) => Promise<{
         success: boolean;
         error?: string
       }>;
-      onTranscriptionProgress: (callback: (data: {
-        type: string;
-        percent: number
-      }) => void) => void;
-      onTranscriptionStatus: (callback: (data: {
-        type: string;
-        status: 'info' | 'success' | 'error';
-        message: string
-      }) => void) => void;
       onCorrectionsStatus: (callback: (data: {
         type: string;
         status: 'info' | 'success' | 'error';
         message: string
       }) => void) => void;
-      removeTranscriptionListeners: () => void;
 
-      // Python environment setup and debugging
+      // NEW: Translation methods
+      runTranslation: (params: {
+        inputPath: string;
+        outputPath: string;
+        apiKey: string;
+        systemPrompt: string;
+        sourceLanguage?: string;
+        targetLanguage?: string;
+        model?: string;
+      }) => Promise<{
+        success: boolean;
+        error?: string
+      }>;
+      onTranslationStatus: (callback: (data: {
+        type: string;
+        status: 'info' | 'success' | 'error' | 'warning' | 'progress';
+        message: string;
+        percent?: number;
+      }) => void) => void;
+      removeTranslationListeners: () => void;
+
+      // Python environment setup methods
       setupLocalPython: () => Promise<{
         success: boolean;
         message?: string;
-        pythonPath?: string;
         error?: string;
       }>;
       testLocalPython: () => Promise<{
-        pythonCommand?: string;
-        envPath?: string;
-        envExists?: boolean;
-        pythonExists?: boolean;
-        testResult?: {
-          exitCode: number;
-          output: string;
-          error: string;
-          success: boolean;
-        };
+        success: boolean;
+        message?: string;
         error?: string;
       }>;
       debugPythonEnvironment: () => Promise<{
-        cwd?: string;
-        pythonCommand?: string;
-        envPath?: string;
-        version?: { success: boolean; output: string };
-        whisper?: { success: boolean; output: string; error: string };
-        pythonPath?: { success: boolean; output: string };
+        success: boolean;
+        details?: any;
         error?: string;
       }>;
 
