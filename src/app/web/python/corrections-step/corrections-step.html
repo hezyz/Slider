@@ -96,7 +96,7 @@
                                             @if (segment.start !== undefined) {
                                             <small class="text-muted">
                                                 <i class="bi bi-clock me-1"></i>
-                                                {{ segment.start }}s - {{ segment.end }}s
+                                                {{ formatTime(segment.start) }} - {{ formatTime(segment.end) }}
                                             </small>
                                             }
                                         </div>

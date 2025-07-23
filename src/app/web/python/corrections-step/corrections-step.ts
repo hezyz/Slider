@@ -288,14 +288,21 @@ export class CorrectionsStep implements OnInit, OnDestroy {
 
     try {
       const corrections = this.allCorrections();
-      const updatedSegments = this.segments().map(segment => {
-        let correctedText = segment.text;
 
-        // Apply each correction rule
-        Object.entries(corrections).forEach(([wrong, correct]) => {
-          // Use word boundaries to ensure whole word replacement
-          const regex = new RegExp(`\\b${wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-          correctedText = correctedText.replace(regex, correct);
+      // Lowercase map for case-insensitive replacement
+      const lowerCaseCorrections = Object.entries(corrections).reduce((acc, [key, value]) => {
+        acc[key.toLowerCase()] = value;
+        return acc;
+      }, {} as { [key: string]: string });
+
+      const escapedWords = Object.keys(corrections)
+        .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
+
+      const updatedSegments = this.segments().map(segment => {
+        const correctedText = segment.text.replace(regex, (match) => {
+          const replacement = lowerCaseCorrections[match.toLowerCase()];
+          return replacement;
         });
 
         return {
@@ -308,16 +315,14 @@ export class CorrectionsStep implements OnInit, OnDestroy {
         throw new Error('Electron API for saving JSON is not available.');
       }
 
-      // Save the corrected segments
       const result = await window.electron.writeJsonFileByPath(this.jsonFilePath(), updatedSegments);
 
       if (result.success) {
         this.segments.set(updatedSegments);
-        this.filterSegments(); // Update filtered segments
+        this.filterSegments();
         this.statusMessage.set(`✅ Applied ${this.correctionWords().length} corrections successfully!`);
         this.hasError.set(false);
 
-        // Emit completion event
         this.correctionsCompleted.emit({
           result: this.jsonFilePath(),
           success: true
@@ -329,4 +334,12 @@ export class CorrectionsStep implements OnInit, OnDestroy {
       this.showError(`Error applying corrections: ${error.message || error}`);
     }
   }
+
+  formatTime(seconds?: number): string {
+    if (seconds === undefined || isNaN(seconds)) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
 }
