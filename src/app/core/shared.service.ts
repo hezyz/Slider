@@ -19,7 +19,6 @@ export class SharedService {
     const result = await window.electron.getProjectImages(projectName);
 
     if (result.success) {
-      console.log('Image paths:', result.files?.length);
       const sortedPaths = this.sortImagePathsByNumber(result.files || []);
       this.imagePaths.set(sortedPaths);
       this.selectedImage.set(this.imagePaths()[0] || '');

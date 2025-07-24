@@ -73,11 +73,12 @@ export class App implements OnInit {
       console.log('User cancelled file selection.');
       return;
     }
-
+    
     const filePath = result.filePath!;
     const json = await window.electron.readJsonFile(filePath);
 
     if (json.success) {
+      this.closeProject();
       console.log('Project loaded:', json.data.name);
       this.sharedService.remove('projectName');
       this.sharedService.set('projectName', json.data.name);
