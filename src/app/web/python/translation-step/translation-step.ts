@@ -77,7 +77,8 @@ export class TranslationStep implements OnInit, OnDestroy {
 
   async loadProjectDataJson(projectName: string) {
     try {
-      const filePath = (await window.electron.getProjectPath(projectName)).path + "/project.json";
+      const appPathResult = await window.electron.getAppPath();
+      const filePath = appPathResult.path + "/openAI.json";
       const json = await window.electron.readJsonFile(filePath || '');
       if (json.success) {
         this.apiKey.set(json.data['openAI-key'] || '');
