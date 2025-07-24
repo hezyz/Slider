@@ -66,7 +66,7 @@ def translate_segments(input_file, output_file, api_key, system_prompt, source_l
                 "id": i + 1,  # Start from 1 instead of 0
                 "text": source_text,
                 "translation": "",  # Will be filled by translation
-                "slide": 1,  # Default slide number
+                "slide": 0,  # Default slide number
                 "delayStartSeconds": 0,
                 "delayEndSeconds": 0
             }

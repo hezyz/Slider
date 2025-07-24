@@ -80,7 +80,6 @@ export class TranslationStep implements OnInit, OnDestroy {
       const filePath = (await window.electron.getProjectPath(projectName)).path + "/project.json";
       const json = await window.electron.readJsonFile(filePath || '');
       if (json.success) {
-        console.log('Project data loaded:', json.data);
         this.apiKey.set(json.data['openAI-key'] || '');
         this.systemPrompt.set(json.data['openAI-prompt'] || '');
       }
@@ -244,19 +243,6 @@ export class TranslationStep implements OnInit, OnDestroy {
       });
     } finally {
       this.isProcessing.set(false);
-    }
-  }
-
-  async openTranslationFile() {
-    if (this.translationPath()) {
-      try {
-        // FIXED: This should work if you have openFile method in your electron API
-        // If not available, you can remove this or implement a simple file viewer
-        console.log('Opening translation file:', this.translationPath());
-        // await window.electron.openFile(this.translationPath());
-      } catch (error) {
-        console.error('Failed to open translation file:', error);
-      }
     }
   }
 }

@@ -81,22 +81,6 @@ export class TranscriptionStep implements OnInit, OnDestroy {
       });
     } else {
       console.warn('Electron API not available. Running in a non-Electron environment.');
-      // Mock data for development if not in Electron
-      // setTimeout(() => {
-      //   this.progress.set(25);
-      //   this.statusMessage.set('Processing audio...');
-      // }, 1000);
-      // setTimeout(() => {
-      //   this.progress.set(75);
-      //   this.statusMessage.set('Applying model...');
-      // }, 3000);
-      // setTimeout(() => {
-      //   this.progress.set(100);
-      //   this.statusMessage.set('✅ Transcription completed successfully!');
-      //   this.transcriptionResult.set('Transcription saved to: mock_output.json');
-      //   this.isTranscribing.set(false);
-      //   this.transcriptionCompleted.emit({ result: 'mock_output.json', success: true });
-      // }, 5000);
     }
   }
 
